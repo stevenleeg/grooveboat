@@ -1,4 +1,5 @@
 import React, {useState, useEffect, Fragment} from 'react';
+import Immutable from 'immutable';
 import {useSelector, useDispatch} from 'react-redux';
 import {withRouter, Redirect} from 'react-router';
 import classNames from 'classnames';
@@ -14,37 +15,50 @@ import {
 import {LoadingState, ErrorState} from 'components/bigstates';
 import {Actions} from './data';
 
-const Stage = () => {
+const Stage = ({djs, currentTrack}) => {
   return (
     <div className="room--stage">
       <div className="stage--nowplaying">
-        LCD Soundsystem - Daft Punk is Playing At My House
+        <div className="up">👍</div>
+        <div className="song">
+          LCD Soundsystem - Daft Punk is Playing At My House
+        </div>
+        <div className="down">👎</div>
       </div>
       <div className="stage--djs">
-        <div className="peer active">
-          <div className="popularity-bar">
-            <div className="ups" />
-            <div className="downs" />
-          </div>
-          <div className="icon">🐕</div>
-          <div className="name">dj floof</div>
-        </div>
-        <div className="peer">
-          <div className="icon">🙀</div>
-          <div className="name">dj rowr</div>
-        </div>
-        <div className="peer">
-          <div className="icon">🐧</div>
-          <div className="name">EL PINGÜINO</div>
-        </div>
+        {Immutable.Range(0, 5).map((_, i) => {
+          console.log('range');
+          const peer = djs.get(i);
+          if (!peer) {
+            return (
+              <div key={i} className="empty-slot">
+                +
+              </div>
+            );
+          }
+
+          return (
+            <Peer
+              key={peer.get('id')}
+              peer={peer}
+              className={classNames({active: false})}
+            >
+              <div className="popularity-bar">
+                <div className="ups" />
+                <div className="downs" />
+              </div>
+            </Peer>
+          );
+        })}
       </div>
     </div>
   );
 };
 
-const Peer = ({peer}) => {
+const Peer = ({peer, className, children}) => {
   return (
-    <div className="peer">
+    <div className={classNames(['peer', className])}>
+      {children}
       <div className="icon">😀</div>
       <div className="name">{peer.get('id')}</div>
     </div>
@@ -123,7 +137,7 @@ const RoomPage = ({match}) => {
       </div>
       <div className="room--container">
         <div className="room--content">
-          <Stage />
+          <Stage djs={room.get('djs')} />
           <Audience peers={room.get('peers')} />
         </div>
         <Sidebar />

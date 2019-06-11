@@ -73,15 +73,46 @@ $sidebar-width: 300px;
   flex-direction: column;
 
   .stage--nowplaying {
+    display: flex;
     @include fancy-font;
     width: 100%;
     font-size: 32px;
-    text-overflow: hidden;
-    white-space: nowrap;
-    overflow: hidden;
-    padding: 25px 0px;
     background-color: $color-dark-gray;
     color: $color-white;
+    cursor: default;
+    align-items: center;
+
+    .song {
+      flex: 1;
+      text-overflow: hidden;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .up, .down {
+      box-sizing: border-box;
+      font-size: 32px;
+      cursor: pointer;
+      transition: 150ms;
+      height: 100%;
+      padding: 25px 20px;
+    }
+
+    .up {
+      margin-right: 10px;
+
+      &:hover {
+        background-color: $color-green;
+      }
+    }
+
+    .down {
+      margin-left: 10px;
+
+      &:hover {
+        background-color: $color-red;
+      }
+    }
   }
 
   .peer {
@@ -102,11 +133,12 @@ $sidebar-width: 300px;
       }
 
       .ups {
-        background-color: green;
+        background-color: $color-green;
         width: 75%;
       }
+
       .downs {
-        background-color: red;
+        background-color: $color-red;
         width: 25%;
       }
     }
@@ -118,5 +150,22 @@ $sidebar-width: 300px;
 
   .stage--djs {
     display: flex;
+  }
+
+  .empty-slot {
+    width: 90px;
+    background: darken($color-light-gray, 5%);
+    border-radius: 12px;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    box-sizing: border-box;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-right: 15px;
+    font-size: 48px;
   }
 }
