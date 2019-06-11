@@ -19,13 +19,14 @@ import {
 //
 export const ActionTypes = {
   INIT: 'pages/room-selector/init',
-
   JOIN_BUOY: 'pages/room-selector/join-buoy',
+  CREATE_ROOM: 'pages/room-selector/create-room',
 };
 
 export const Actions = {
   init: createAction(ActionTypes.INIT),
   joinBuoy: createAction(ActionTypes.JOIN_BUOY, 'inviteCode'),
+  createRoom: createAction(ActionTypes.CREATE_ROOM, 'name', 'callback'),
 };
 
 ////
@@ -65,9 +66,26 @@ function* joinBuoy({inviteCode}) {
   }
 
   // Fetch the rooms in the buoy
+  yield put(RoomActions.fetchAll());
+}
+
+function* createRoom({name, callback}) {
+  yield put(RoomActions.createRoom({name}));
+
+  const {type, room} = yield take([
+    RoomActionTypes.CREATE_ROOM_SUCCESS,
+    RoomActionTypes.CREATE_ROOM_FAILURE,
+  ]);
+
+  if (type === RoomActionTypes.CREATE_ROOM_FAILURE) {
+    return;
+  }
+
+  yield call(callback, {room});
 }
 
 export function* Saga() {
   yield takeEvery(ActionTypes.INIT, init);
   yield takeEvery(ActionTypes.JOIN_BUOY, joinBuoy);
+  yield takeEvery(ActionTypes.CREATE_ROOM, createRoom);
 }

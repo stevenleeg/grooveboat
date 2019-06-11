@@ -1,5 +1,6 @@
 import React, {Fragment, useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
+import {withRouter} from 'react-router';
 import JWT from 'jsonwebtoken';
 
 import {
@@ -15,7 +16,7 @@ import layout from 'components/layout';
 
 const EXAMPLE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzIjoid3M6Ly9idW95LnRlaWYueHl6LyJ9.Av1Z3HtkzLTMwjyJ_3rs4ARvqpdK8ylHllBrBwF-Vvg';
 
-const RoomSelectorPage = () => {
+const RoomSelectorPage = ({history}) => {
   ////
   // Hooks
   //
@@ -53,6 +54,13 @@ const RoomSelectorPage = () => {
       }
     }
   }, [inviteForm]);
+
+  ////
+  // Action callbacks
+  //
+  const onCreateSuccess = ({room}) => {
+    history.push(`/rooms/${room.get('id')}`);
+  };
 
   ////
   // Rendering
@@ -95,8 +103,12 @@ const RoomSelectorPage = () => {
         <p>you are connected to {connectedBuoy.get('name')}</p>
         {rooms.map((room) => {
           return (
-            <div key={room.id} className="room-selector--room">
-              {room.name}
+            <div
+              key={room.get('id')}
+              className="room-selector--room"
+              onClick={() => history.push(`/rooms/${room.get('id')}`)}
+            >
+              {room.get('name')}
             </div>
           );
         })}
@@ -109,7 +121,10 @@ const RoomSelectorPage = () => {
           onChange={() => setCreateForm({...createForm, name: e.target.value})}
         />
         <button
-          onClick={() => Actions.createRoom({...createForm})}
+          onClick={() => dispatch(Actions.createRoom({
+            ...createForm,
+            callback: onCreateSuccess,
+          }))}
         >
           create room
         </button>
@@ -126,4 +141,4 @@ const RoomSelectorPage = () => {
   );
 };
 
-export default layout(RoomSelectorPage);
+export default layout(withRouter(RoomSelectorPage));
