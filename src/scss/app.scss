@@ -1,0 +1,91 @@
+$color-light-gray: #EEE;
+$color-border: darken($color-light-gray, 5%);
+$color-dark-gray: #515151;
+$color-blue: #00B4FF;
+$color-white: #FFF;
+$color-red: #ee1111;
+
+@mixin font {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  font-weight: 300;
+}
+
+@mixin fancy-font {
+  font-family: 'Monoton', cursive;
+}
+
+body {
+  @include font;
+  background: $color-light-gray;
+  color: $color-dark-gray;
+  padding: 0px;
+  margin: 0px;
+}
+
+#root {
+  height: 100vh;
+}
+
+h1 {
+  font-weight: 300;
+  font-size: 48px;
+  margin: 0px 0px 10px 0px;
+}
+
+button {
+  @include font;
+  background-color: $color-blue;
+  border: 0px;
+  padding: 10px 15px;
+  color: $color-white;
+  margin: 5px 0px;
+}
+
+input, select, textarea {
+  @include font;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 18px;
+  color: $color-dark-gray;
+  border: 0px;
+  background: $color-light-gray;
+  border-bottom: 1px solid $color-border;
+  padding: 10px;
+  margin: 10px 0px;
+  outline: none;
+  border-radius: 0px;
+  -webkit-appearance: none;
+
+  &:focus {
+    border-bottom-color: $color-blue;
+  }
+}
+
+textarea {
+  height: 100px;
+}
+
+label {
+  display: block;
+  margin-bottom: -5px;
+  font-size: 12px;
+}
+
+a {
+  color: $color-blue;
+  cursor: pointer;
+}
+
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.spacer {
+  flex: 1;
+}
+
+@import './pages/room-selector';
