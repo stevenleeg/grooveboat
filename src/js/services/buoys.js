@@ -223,7 +223,6 @@ function* listen() {
   try {
     while (true) {
       const {payload, callback} = yield take(messageChannel);
-      console.log('listening');
       yield put(Actions.receive({...payload, callback}));
     }
   } finally {

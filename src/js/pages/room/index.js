@@ -27,7 +27,6 @@ const Stage = ({djs, currentTrack}) => {
       </div>
       <div className="stage--djs">
         {Immutable.Range(0, 5).map((_, i) => {
-          console.log('range');
           const peer = djs.get(i);
           if (!peer) {
             return (
@@ -78,6 +77,17 @@ const Audience = ({peers}) => {
 const MODE_CHAT = 'chat';
 const MODE_PLAYLIST = 'playlist';
 
+const Playlists = () => {
+  return (
+    <div className="sidebar--playlists">
+      <select>
+        <option>default</option>
+        <option>+ new playlist</option>
+      </select>
+    </div>
+  );
+};
+
 const Sidebar = () => {
   const [mode, setMode] = useState(MODE_PLAYLIST);
 
@@ -97,6 +107,9 @@ const Sidebar = () => {
           playlists
         </div>
       </div>
+      {mode === MODE_PLAYLIST && (
+        <Playlists />
+      )}
     </div>
   );
 };

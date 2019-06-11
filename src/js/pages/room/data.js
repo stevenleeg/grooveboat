@@ -26,7 +26,6 @@ export const Actions = {
 // Sagas
 //
 function* init({roomId, failureCallback}) {
-  console.log(roomId, failureCallback);
   const connectedBuoy = yield select(BuoySelectors.connectedBuoy);
   if (!connectedBuoy) {
     yield put(BuoyActions.fetchBuoys());
