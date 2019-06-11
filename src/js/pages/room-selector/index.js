@@ -49,7 +49,7 @@ const RoomSelectorPage = ({history}) => {
         return;
       }
 
-      if (token.u) {
+      if (token && token.u) {
         dispatch(Actions.joinBuoy({inviteCode: inviteForm.invite}));
       }
     }

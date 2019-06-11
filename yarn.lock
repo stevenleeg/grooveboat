@@ -882,13 +882,6 @@ atob@^2.1.1:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.1.2.tgz#6d9517eb9e030d2436666651e86bd9f6f13533c9"
 
-aws-sdk@0.9.7-pre.8:
-  version "0.9.7-pre.8"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-0.9.7-pre.8.tgz#9f2aa082d83bc08c834ef33fd27bbf181ce0d341"
-  dependencies:
-    xml2js "0.2.4"
-    xmlbuilder latest
-
 aws-sign2@~0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/aws-sign2/-/aws-sign2-0.7.0.tgz#b46e890934a9591f2d2f6f86d7e6a9f1b3fe76a8"
@@ -968,10 +961,6 @@ better-assert@~1.0.0:
   resolved "https://registry.yarnpkg.com/better-assert/-/better-assert-1.0.2.tgz#40866b9e1b9e0b55b481894311e68faffaebc522"
   dependencies:
     callsite "1.0.0"
-
-bignumber.js@7.2.1:
-  version "7.2.1"
-  resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-7.2.1.tgz#80c048759d826800807c4bfd521e50edbba57a5f"
 
 binary-extensions@^1.0.0:
   version "1.13.1"
@@ -1231,6 +1220,10 @@ class-utils@^0.3.5:
     define-property "^0.2.5"
     isobject "^3.0.0"
     static-extend "^0.1.1"
+
+classnames@^2.2.6:
+  version "2.2.6"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
 
 cli-cursor@^2.1.0:
   version "2.1.0"
@@ -1619,18 +1612,6 @@ date-now@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
-db@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/db/-/db-1.1.1.tgz#ae2ab96be42b6f26087245d90b45e4fb9a8ba4cb"
-  dependencies:
-    aws-sdk "0.9.7-pre.8"
-    ds "1.2.0"
-    freekey "^1.0.2"
-    mysql "^2.16.0"
-    redis "0.6.7"
-    runq "^1.1.2"
-    sleepless "^2.6.0"
-
 deasync@^0.1.14:
   version "0.1.15"
   resolved "https://registry.yarnpkg.com/deasync/-/deasync-0.1.15.tgz#788c4bbe6d32521233b28d23936de1bbadd2e112"
@@ -1791,10 +1772,6 @@ dotenv-expand@^4.2.0:
 dotenv@^5.0.0:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-5.0.1.tgz#a5317459bd3d79ab88cff6e44057a6a3fbb1fcef"
-
-ds@1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/ds/-/ds-1.2.0.tgz#39b38942a53b149e7e27a8930acdad193c86260a"
 
 duplexer2@~0.1.4:
   version "0.1.4"
@@ -2089,14 +2066,6 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-freekey@^1.0.2:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/freekey/-/freekey-1.1.0.tgz#9d7355c2acb75108b9112b6c418a77226372c615"
-  dependencies:
-    https-post "^0.1.1"
-    request "^2.87.0"
-    sleepless "^2.6.0"
-
 fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
@@ -2376,10 +2345,6 @@ http-signature@~1.2.0:
 https-browserify@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/https-browserify/-/https-browserify-1.0.0.tgz#ec06c10e0a34c0f2faf199f7fd7fc78fffd03c73"
-
-https-post@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/https-post/-/https-post-0.1.1.tgz#d93bb52694d411473b4b08ad5e5baffbf5ff55bf"
 
 iconv-lite@0.4.24, iconv-lite@^0.4.4:
   version "0.4.24"
@@ -3041,15 +3006,6 @@ ms@2.1.1:
 ms@^2.1.1:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
-
-mysql@^2.16.0:
-  version "2.17.1"
-  resolved "https://registry.yarnpkg.com/mysql/-/mysql-2.17.1.tgz#62bba4a039a9b2f73638cd1652ce50fc6f682899"
-  dependencies:
-    bignumber.js "7.2.1"
-    readable-stream "2.3.6"
-    safe-buffer "5.1.2"
-    sqlstring "2.3.1"
 
 nan@^2.12.1:
   version "2.14.0"
@@ -3974,7 +3930,7 @@ react@^16.8.6:
     prop-types "^15.6.2"
     scheduler "^0.13.6"
 
-readable-stream@2.3.6, readable-stream@^2.0.2, readable-stream@^2.0.6, readable-stream@^2.2.2, readable-stream@^2.3.3, readable-stream@^2.3.6, readable-stream@~2.3.3, readable-stream@~2.3.6:
+readable-stream@^2.0.2, readable-stream@^2.0.6, readable-stream@^2.2.2, readable-stream@^2.3.3, readable-stream@^2.3.6, readable-stream@~2.3.3, readable-stream@~2.3.6:
   version "2.3.6"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.3.6.tgz#b11c27d88b8ff1fbe070643cf94b0c79ae1b0aaf"
   dependencies:
@@ -4001,10 +3957,6 @@ readdirp@^2.2.1:
     graceful-fs "^4.1.11"
     micromatch "^3.1.10"
     readable-stream "^2.0.2"
-
-redis@0.6.7:
-  version "0.6.7"
-  resolved "https://registry.yarnpkg.com/redis/-/redis-0.6.7.tgz#0f17f913468a5cb2bf0864e4d56669d058668d46"
 
 redux-logger@^3.0.6:
   version "3.0.6"
@@ -4208,11 +4160,7 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-runq@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/runq/-/runq-1.1.2.tgz#8cb78878b34a744fb5954ba74763ba32ce582094"
-
-safe-buffer@5.1.2, safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@^5.1.1, safe-buffer@^5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
+safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@^5.1.1, safe-buffer@^5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.2.tgz#991ec69d296e0313747d59bdfd2b745c35f8828d"
 
@@ -4238,7 +4186,7 @@ sass@^1.21.0:
   dependencies:
     chokidar "^2.0.0"
 
-sax@>=0.4.2, sax@^1.2.4, sax@~1.2.4:
+sax@^1.2.4, sax@~1.2.4:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
 
@@ -4359,10 +4307,6 @@ simple-swizzle@^0.2.2:
   dependencies:
     is-arrayish "^0.3.1"
 
-sleepless@^2.6.0:
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/sleepless/-/sleepless-2.7.0.tgz#4ece7a3403c1a7f6232751e33e383b92438ef9b2"
-
 snapdragon-node@^2.0.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/snapdragon-node/-/snapdragon-node-2.1.1.tgz#6c175f86ff14bdb0724563e8f3c1b021a286853b"
@@ -4463,10 +4407,6 @@ sprintf-js@^1.0.3:
 sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
-
-sqlstring@2.3.1:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/sqlstring/-/sqlstring-2.3.1.tgz#475393ff9e91479aea62dcaf0ca3d14983a7fb40"
 
 sshpk@^1.7.0:
   version "1.16.1"
@@ -5048,16 +4988,6 @@ ws@~6.1.0:
 xml-name-validator@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/xml-name-validator/-/xml-name-validator-3.0.0.tgz#6ae73e06de4d8c6e47f9fb181f78d648ad457c6a"
-
-xml2js@0.2.4:
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/xml2js/-/xml2js-0.2.4.tgz#9a5b577fa1e6cdf8923d5e1372f7a3188436e44d"
-  dependencies:
-    sax ">=0.4.2"
-
-xmlbuilder@latest:
-  version "13.0.2"
-  resolved "https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-13.0.2.tgz#02ae33614b6a047d1c32b5389c1fdacb2bce47a7"
 
 xmlhttprequest-ssl@~1.5.4:
   version "1.5.5"

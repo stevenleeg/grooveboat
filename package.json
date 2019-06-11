@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "classnames": "^2.2.6",
     "immutable": "^4.0.0-rc.12",
     "jsonwebtoken": "^8.5.1",
     "pouchdb-browser": "^7.0.0",

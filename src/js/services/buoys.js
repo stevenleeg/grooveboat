@@ -12,7 +12,7 @@ let socket = null;
 const openSocket = ({url}) => {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
-      reject();
+      reject({error: true, message: 'connection timed out'});
     }, 3000);
 
     socket = io(url);
@@ -198,7 +198,12 @@ function* join({inviteCode}) {
 
 function* connect({buoy}) {
   const token = JWT.decode(buoy.get('token'));
-  yield call(openSocket, {url: token.u});
+  try {
+    yield call(openSocket, {url: token.u});
+  } catch (e) {
+    yield put(Actions.connectFailure({message: e.message}));
+    return;
+  }
 
   const resp = yield call(send, {
     name: 'authenticate',
@@ -218,6 +223,7 @@ function* listen() {
   try {
     while (true) {
       const {payload, callback} = yield take(messageChannel);
+      console.log('listening');
       yield put(Actions.receive({...payload, callback}));
     }
   } finally {

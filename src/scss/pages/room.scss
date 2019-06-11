@@ -1,0 +1,68 @@
+$sidebar-width: 300px;
+
+.room--container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+.room--sidebar {
+  width: $sidebar-width;
+  background: $color-white;
+}
+
+.sidebar--tabs {
+  display: flex;
+
+  div {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0px;
+    border-bottom: 1px solid $color-border;
+    border-top: 1px solid $color-border;
+    cursor: pointer;
+    transition: 150ms;
+
+    &.selected {
+      color: $color-red;
+      cursor: default;
+    }
+  }
+}
+
+.room--content {
+  width: calc(100% - #{$sidebar-width});
+  display: flex;
+  flex-direction: column;
+}
+
+.room--audience {
+  flex: 1;
+  padding: 25px;
+
+  .peer {
+    width: 90px;
+    background: darken($color-light-gray, 5%);
+    border-radius: 12px;
+    box-sizing: border-box;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: crosshair;
+
+    .icon {
+      font-size: 48px;
+    }
+
+    .name {
+      max-width: 80px;
+      font-size: 12px;
+
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+}

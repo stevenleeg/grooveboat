@@ -1,9 +1,12 @@
+$color-dark: #111;
 $color-light-gray: #EEE;
 $color-border: darken($color-light-gray, 5%);
 $color-dark-gray: #515151;
 $color-blue: #00B4FF;
 $color-white: #FFF;
 $color-red: #ee1111;
+
+$header-height: 50px;
 
 @mixin font {
   font-family: Helvetica, Arial, sans-serif;
@@ -24,8 +27,9 @@ body {
   margin: 0px;
 }
 
-#root {
-  height: 100vh;
+#mount {
+  min-height: 100vh;
+  min-width: 100vh;
 }
 
 h1 {
@@ -88,4 +92,67 @@ a {
   flex: 1;
 }
 
+.header {
+  background: $color-white;
+  padding: 0px 15px;
+  height: $header-height;
+  line-height: $header-height;
+  display: flex;
+  align-items: center;
+
+  .logo {
+    font-size: 28px;
+
+    &:hover:after {
+      content: "[grooveboat]";
+      display: inline-block;
+      color: $color-light-gray;
+      font-size: 18px;
+      margin-left: 10px;
+    }
+  }
+}
+
+[class^="bigstates--"] {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  &:before {
+    display: block;
+    font-size: 150px;
+  }
+}
+
+.bigstates--loading {
+  &:before {
+    content: "💅";
+    animation: highlight 2s infinite;
+  }
+}
+
+.bigstates--error {
+  &:before {
+    content: "💩";
+  }
+}
+
+@keyframes highlight {
+  0% {
+    text-shadow: 0px 0px 5px $color-red;
+  }
+
+  50% {
+    text-shadow: 0px 0px 25px $color-red;
+  }
+
+  100% {
+    text-shadow: 0px 0px 5px $color-red;
+  }
+}
+
 @import './pages/room-selector';
+@import './pages/room';
