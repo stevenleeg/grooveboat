@@ -17,7 +17,27 @@ import {Actions} from './data';
 const Stage = () => {
   return (
     <div className="room--stage">
-      stage
+      <div className="stage--nowplaying">
+        LCD Soundsystem - Daft Punk is Playing At My House
+      </div>
+      <div className="stage--djs">
+        <div className="peer active">
+          <div className="popularity-bar">
+            <div className="ups" />
+            <div className="downs" />
+          </div>
+          <div className="icon">🐕</div>
+          <div className="name">dj floof</div>
+        </div>
+        <div className="peer">
+          <div className="icon">🙀</div>
+          <div className="name">dj rowr</div>
+        </div>
+        <div className="peer">
+          <div className="icon">🐧</div>
+          <div className="name">EL PINGÜINO</div>
+        </div>
+      </div>
     </div>
   );
 };

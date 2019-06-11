@@ -8,6 +8,11 @@ $color-red: #ee1111;
 
 $header-height: 50px;
 
+@font-face {
+  font-family: 'Codystar';
+  src: url('../assets/fonts/Codystar-Regular.ttf');
+}
+
 @mixin font {
   font-family: Helvetica, Arial, sans-serif;
   font-size: 16px;
@@ -16,7 +21,7 @@ $header-height: 50px;
 }
 
 @mixin fancy-font {
-  font-family: 'Monoton', cursive;
+  font-family: 'Codystar', cursive;
 }
 
 body {

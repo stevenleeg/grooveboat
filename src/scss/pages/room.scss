@@ -39,30 +39,84 @@ $sidebar-width: 300px;
 .room--audience {
   flex: 1;
   padding: 25px;
+}
+
+.peer {
+  width: 90px;
+  background: darken($color-light-gray, 5%);
+  border-radius: 12px;
+  box-sizing: border-box;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: crosshair;
+
+  .icon {
+    font-size: 48px;
+  }
+
+  .name {
+    max-width: 80px;
+    font-size: 12px;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
+
+.room--stage {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
+  .stage--nowplaying {
+    @include fancy-font;
+    width: 100%;
+    font-size: 32px;
+    text-overflow: hidden;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 25px 0px;
+    background-color: $color-dark-gray;
+    color: $color-white;
+  }
 
   .peer {
-    width: 90px;
-    background: darken($color-light-gray, 5%);
-    border-radius: 12px;
-    box-sizing: border-box;
-    padding: 10px;
+    position: relative;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    margin-right: 15px;
+
+    .popularity-bar {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      right: 0px;
+
+      display: flex;
+      div {
+        height: 5px;
+      }
+
+      .ups {
+        background-color: green;
+        width: 75%;
+      }
+      .downs {
+        background-color: red;
+        width: 25%;
+      }
+    }
+
+    &.active {
+      background-color: $color-white;
+    }
+  }
+
+  .stage--djs {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: crosshair;
-
-    .icon {
-      font-size: 48px;
-    }
-
-    .name {
-      max-width: 80px;
-      font-size: 12px;
-
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-    }
   }
 }

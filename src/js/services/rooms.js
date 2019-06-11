@@ -23,7 +23,6 @@ export const ActionTypes = {
   JOIN_ROOM_FAILURE: 'services/rooms/join_room_failure',
 
   SET_PEERS: 'services/rooms/set_peers',
-  TICK: 'services/rooms/tick',
 };
 
 export const Actions = {
@@ -39,7 +38,6 @@ export const Actions = {
   joinRoomFailure: createAction(ActionTypes.JOIN_ROOM_FAILURE, 'message'),
 
   setPeers: createAction(ActionTypes.SET_PEERS, 'peers'),
-  tick: createAction(ActionTypes.TICK, 'tick'),
 };
 
 ////
@@ -143,5 +141,4 @@ export function* Saga() {
   yield takeEvery(ActionTypes.JOIN_ROOM, joinRoom);
 
   yield* takeRPC('setPeers', Actions.setPeers);
-  yield* takeRPC('tick', Actions.tick);
 }
