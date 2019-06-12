@@ -4,7 +4,8 @@ import Immutable from 'immutable';
 
 import {
   send,
-  takeRPC,
+  rpcToAction,
+  rpcToSaga,
   ActionTypes as BuoyActionTypes,
 } from './buoys';
 
@@ -198,7 +199,7 @@ export function* Saga() {
   yield takeEvery(ActionTypes.JOIN_ROOM, joinRoom);
   yield takeEvery(ActionTypes.BECOME_DJ, becomeDj);
 
-  yield* takeRPC('setPeers', Actions.setPeers);
-  yield* takeRPC('setDjs', Actions.setDjs);
-  yield* takeRPC('setActiveDj', Actions.setActiveDj);
+  yield* rpcToAction('setPeers', Actions.setPeers);
+  yield* rpcToAction('setDjs', Actions.setDjs);
+  yield* rpcToAction('setActiveDj', Actions.setActiveDj);
 }

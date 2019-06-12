@@ -5,6 +5,7 @@ import uuid from 'uuid/v1';
 
 import db from 'db';
 import {createAction} from 'utils/redux';
+import {rpcToAction,} from './buoys';
 
 ////
 // Helpers
@@ -38,6 +39,8 @@ export const ActionTypes = {
   SET_SELECTED_QUEUE: 'services/library/set_selected_queue',
   SET_TRACK: 'services/library/set_track',
   ADD_TO_QUEUE: 'services/library/add_to_queue',
+
+  REQUEST_TRACK: 'services/library/request_track',
 };
 
 export const Actions = {
@@ -47,7 +50,8 @@ export const Actions = {
 
   setSelectedQueue: createAction(ActionTypes.SET_SELECTED_QUEUE, 'queue'),
   setTrack: createAction(ActionTypes.SET_TRACK, 'track'),
-  addToQueue: createAction(ActionTypes.ADD_TO_QUEUE, 'trackId', 'queueId')
+  addToQueue: createAction(ActionTypes.ADD_TO_QUEUE, 'trackId', 'queueId'),
+  requestTrack: createAction(ActionTypes.REQUEST_TRACK, 'callback'),
 };
 
 ////
@@ -193,8 +197,18 @@ function* addToQueue({trackId, queueId}) {
   yield put(Actions.setSelectedQueue({queue: updatedQueue}));
 }
 
+function* requestTrack({callback}) {
+  const currentQueue = yield select(Selectors.selectedQueueWithTracks);
+  const track = currentQueue.getIn(['tracks', 0]);
+
+  callback({track: track.deleteAll(['_id', '_rev']).toJS()});
+}
+
 export function* Saga() {
   yield takeEvery('init', init);
   yield takeEvery(ActionTypes.ADD_TRACK, addTrack);
   yield takeEvery(ActionTypes.ADD_TO_QUEUE, addToQueue);
+  yield takeEvery(ActionTypes.REQUEST_TRACK, requestTrack);
+
+  yield* rpcToAction('requestTrack', Actions.requestTrack);
 }
