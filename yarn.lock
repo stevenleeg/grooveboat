@@ -2705,6 +2705,12 @@ jsesc@~0.5.0:
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-0.5.0.tgz#e7dee66e35d6fc16f710fe91d5cf69f70f08911d"
 
+jsmediatags@^3.8.1:
+  version "3.8.1"
+  resolved "https://registry.yarnpkg.com/jsmediatags/-/jsmediatags-3.8.1.tgz#e27d26e957b0b330c28f9762c82940c4dcc64720"
+  dependencies:
+    xhr2 "^0.1.4"
+
 json-parse-better-errors@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/json-parse-better-errors/-/json-parse-better-errors-1.0.2.tgz#bb867cfb3450e69107c131d1c514bab3dc8bcaa9"
@@ -5008,6 +5014,10 @@ ws@~6.1.0:
   resolved "https://registry.yarnpkg.com/ws/-/ws-6.1.4.tgz#5b5c8800afab925e94ccb29d153c8d02c1776ef9"
   dependencies:
     async-limiter "~1.0.0"
+
+xhr2@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/xhr2/-/xhr2-0.1.4.tgz#7f87658847716db5026323812f818cadab387a5f"
 
 xml-name-validator@^3.0.0:
   version "3.0.0"

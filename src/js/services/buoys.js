@@ -234,7 +234,7 @@ function* fetchBuoys() {
   let buoys;
   try {
     const store = yield call(db.get, 'buoys');
-    buoys = Immutable.fromJS(store.buoys);
+    buoys = store.get('buoys');
   } catch (e) {
     if (e.status !== 404) {
       throw e;

@@ -3,6 +3,7 @@ import Immutable from 'immutable';
 import {useSelector, useDispatch} from 'react-redux';
 import {withRouter, Redirect} from 'react-router';
 import classNames from 'classnames';
+import {useDropzone} from 'react-dropzone';
 
 import {
   Actions as RoomActions,
@@ -12,6 +13,10 @@ import {
   Selectors as BuoySelectors,
   Actions as BuoyActions,
 } from 'services/buoys';
+import {
+  Actions as LibraryActions,
+  Selectors as LibrarySelectors,
+} from 'services/library';
 import {LoadingState, ErrorState} from 'components/bigstates';
 import {Actions} from './data';
 
@@ -75,21 +80,53 @@ const Audience = ({peers}) => {
 };
 
 const MODE_CHAT = 'chat';
-const MODE_PLAYLIST = 'playlist';
+const MODE_QUEUE = 'queue';
 
-const Playlists = () => {
+const Queues = () => {
+  ////
+  // Hooks
+  //
+  const dispatch = useDispatch();
+  const queue = useSelector(LibrarySelectors.selectedQueueWithTracks);
+
+  ////
+  // Action callbacks
+  //
+  const onDrop = (files) => {
+    files.forEach((file) => {
+      dispatch(LibraryActions.addTrack({file}));
+    });
+  };
+
+  const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
+
   return (
-    <div className="sidebar--playlists">
+    <div className="sidebar--queues">
       <select>
         <option>default</option>
-        <option>+ new playlist</option>
+        <option>+ new queue</option>
       </select>
+
+      <ul className="queues--tracks">
+        {queue.get('tracks').map((track) => {
+          return (
+            <li key={track.get('_id')}>
+              {track.get('filename')}
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="queues--dropzone" {...getRootProps()}>
+        <input {...getInputProps()} />
+        share 'em
+      </div>
     </div>
   );
 };
 
 const Sidebar = () => {
-  const [mode, setMode] = useState(MODE_PLAYLIST);
+  const [mode, setMode] = useState(MODE_QUEUE);
 
   return (
     <div className="room--sidebar">
@@ -101,14 +138,14 @@ const Sidebar = () => {
           chat
         </div>
         <div
-          className={classNames({selected: mode === MODE_PLAYLIST})}
-          onClick={() => setMode(MODE_PLAYLIST)}
+          className={classNames({selected: mode === MODE_QUEUE})}
+          onClick={() => setMode(MODE_QUEUE)}
         >
-          playlists
+          queues
         </div>
       </div>
-      {mode === MODE_PLAYLIST && (
-        <Playlists />
+      {mode === MODE_QUEUE && (
+        <Queues />
       )}
     </div>
   );
@@ -120,7 +157,7 @@ const RoomPage = ({match}) => {
   //
   const isConnecting = useSelector(BuoySelectors.isConnecting);
   const connectedBuoy = useSelector(BuoySelectors.connectedBuoy);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const room = useSelector(RoomSelectors.currentRoom);
   const [error, setError] = useState(null);
 
