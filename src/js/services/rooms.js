@@ -30,6 +30,7 @@ export const ActionTypes = {
   BECOME_DJ_FAILURE: 'services/rooms/become_dj_failure',
 
   SET_DJS: 'services/room/set_djs',
+  SET_ACTIVE_DJ: 'services/room/set_active_dj',
 };
 
 export const Actions = {
@@ -49,8 +50,8 @@ export const Actions = {
   becomeDjFailure: createAction(ActionTypes.BECOME_DJ_FAILURE, 'message'),
 
   setPeers: createAction(ActionTypes.SET_PEERS, 'peers'),
-
   setDjs: createAction(ActionTypes.SET_DJS, 'djs'),
+  setActiveDj: createAction(ActionTypes.SET_ACTIVE_DJ, 'djId'),
 };
 
 ////
@@ -87,6 +88,10 @@ const callbacks = [
     actionType: ActionTypes.SET_DJS,
     callback: (s, {djs}) => s.setIn(['currentRoom', 'djs'], djs),
   },
+  {
+    actionType: ActionTypes.SET_ACTIVE_DJ,
+    callback: (s, {djId}) => s.setIn(['currentRoom', 'activeDj'], djId),
+  }
 ];
 
 export const Reducers = {initialState, callbacks};
@@ -195,4 +200,5 @@ export function* Saga() {
 
   yield* takeRPC('setPeers', Actions.setPeers);
   yield* takeRPC('setDjs', Actions.setDjs);
+  yield* takeRPC('setActiveDj', Actions.setActiveDj);
 }

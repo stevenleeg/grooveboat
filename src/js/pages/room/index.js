@@ -20,7 +20,7 @@ import {
 import {LoadingState, ErrorState} from 'components/bigstates';
 import {Actions} from './data';
 
-const Stage = ({djs, currentTrack}) => {
+const Stage = ({djs, activeDj, currentTrack}) => {
   ////
   // Hooks
   //
@@ -34,7 +34,7 @@ const Stage = ({djs, currentTrack}) => {
       <div className="stage--nowplaying">
         <div className="up">👍</div>
         <div className="song">
-          LCD Soundsystem - Daft Punk is Playing At My House
+          Awaiting track...
         </div>
         <div className="down">👎</div>
       </div>
@@ -61,7 +61,7 @@ const Stage = ({djs, currentTrack}) => {
             <Peer
               key={peer.get('id')}
               peer={peer}
-              className={classNames({active: false})}
+              className={classNames({active: peer.get('id') === activeDj})}
             >
               <div className="popularity-bar">
                 <div className="ups" />
@@ -206,7 +206,7 @@ const RoomPage = ({match}) => {
       </div>
       <div className="room--container">
         <div className="room--content">
-          <Stage djs={djs} />
+          <Stage djs={djs} activeDj={room.get('activeDj')} />
           <Audience peers={audience} />
         </div>
         <Sidebar />
