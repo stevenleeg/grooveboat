@@ -247,6 +247,19 @@ function* fetchBuoys() {
   yield put(Actions.fetchBuoysSuccess({buoys}));
 }
 
+export function* takeRPC(name, actionCreator) {
+  yield takeEvery(({type, name: incName}) => {
+    return type === ActionTypes.RECEIVE && name === incName;
+  }, function*({params}) {
+    const keys = Object.keys(params);
+    const immutable = keys.reduce((map, key) => {
+      return {...map, [key]: Immutable.fromJS(params[key])};
+    }, {});
+
+    yield put(actionCreator(immutable));
+  });
+}
+
 export function* Saga() {
   yield takeEvery(ActionTypes.JOIN, join);
   yield takeEvery(ActionTypes.CONNECT, connect);

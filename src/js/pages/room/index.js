@@ -21,6 +21,14 @@ import {LoadingState, ErrorState} from 'components/bigstates';
 import {Actions} from './data';
 
 const Stage = ({djs, currentTrack}) => {
+  ////
+  // Hooks
+  //
+  const dispatch = useDispatch()
+
+  ////
+  // Render
+  //
   return (
     <div className="room--stage">
       <div className="stage--nowplaying">
@@ -33,11 +41,19 @@ const Stage = ({djs, currentTrack}) => {
       <div className="stage--djs">
         {Immutable.Range(0, 5).map((_, i) => {
           const peer = djs.get(i);
-          if (!peer) {
+          if (i === djs.count()) {
             return (
-              <div key={i} className="empty-slot">
+              <div
+                key={i} 
+                className="empty-slot clickable"
+                onClick={() => dispatch(RoomActions.becomeDj())}
+              >
                 +
               </div>
+            );
+          } else if (!djs.get(i)) {
+            return (
+              <div key={i} className="empty-slot" />
             );
           }
 
@@ -158,8 +174,11 @@ const RoomPage = ({match}) => {
   const isConnecting = useSelector(BuoySelectors.isConnecting);
   const connectedBuoy = useSelector(BuoySelectors.connectedBuoy);
   const dispatch = useDispatch();
-  const room = useSelector(RoomSelectors.currentRoom);
   const [error, setError] = useState(null);
+
+  const room = useSelector(RoomSelectors.currentRoom);
+  const djs = useSelector(RoomSelectors.djs);
+  const audience = useSelector(RoomSelectors.audience);
 
   useEffect(() => {
     dispatch(Actions.init({
@@ -187,8 +206,8 @@ const RoomPage = ({match}) => {
       </div>
       <div className="room--container">
         <div className="room--content">
-          <Stage djs={room.get('djs')} />
-          <Audience peers={room.get('peers')} />
+          <Stage djs={djs} />
+          <Audience peers={audience} />
         </div>
         <Sidebar />
       </div>

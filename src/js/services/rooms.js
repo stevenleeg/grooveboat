@@ -4,6 +4,7 @@ import Immutable from 'immutable';
 
 import {
   send,
+  takeRPC,
   ActionTypes as BuoyActionTypes,
 } from './buoys';
 
@@ -23,6 +24,12 @@ export const ActionTypes = {
   JOIN_ROOM_FAILURE: 'services/rooms/join_room_failure',
 
   SET_PEERS: 'services/rooms/set_peers',
+
+  BECOME_DJ: 'services/rooms/become_dj',
+  BECOME_DJ_SUCCESS: 'services/rooms/become_dj_success',
+  BECOME_DJ_FAILURE: 'services/rooms/become_dj_failure',
+
+  SET_DJS: 'services/room/set_djs',
 };
 
 export const Actions = {
@@ -37,7 +44,13 @@ export const Actions = {
   joinRoomSuccess: createAction(ActionTypes.JOIN_ROOM_SUCCESS, 'room'),
   joinRoomFailure: createAction(ActionTypes.JOIN_ROOM_FAILURE, 'message'),
 
+  becomeDj: createAction(ActionTypes.BECOME_DJ),
+  becomeDjSuccess: createAction(ActionTypes.BECOME_DJ_SUCCESS),
+  becomeDjFailure: createAction(ActionTypes.BECOME_DJ_FAILURE, 'message'),
+
   setPeers: createAction(ActionTypes.SET_PEERS, 'peers'),
+
+  setDjs: createAction(ActionTypes.SET_DJS, 'djs'),
 };
 
 ////
@@ -69,7 +82,11 @@ const callbacks = [
   {
     actionType: ActionTypes.SET_PEERS,
     callback: (s, {peers}) => s.setIn(['currentRoom', 'peers'], peers),
-  }
+  },
+  {
+    actionType: ActionTypes.SET_DJS,
+    callback: (s, {djs}) => s.setIn(['currentRoom', 'djs'], djs),
+  },
 ];
 
 export const Reducers = {initialState, callbacks};
@@ -77,10 +94,47 @@ export const Reducers = {initialState, callbacks};
 ////
 // Selectors
 //
+const store = s => s.getIn(['services', 'rooms']);
+const rooms = s => store(s).get('rooms');
+const currentRoom = s => store(s).get('currentRoom');
+const peerMap = (s) => {
+  const room = currentRoom(s);
+  if (!room) {
+    return new Immutable.List();
+  }
+
+  return room.get('peers').reduce((map, peer) => {
+    return map.set(peer.get('id'), peer);
+  }, new Immutable.Map());
+};
+const djs = (s) => {
+  const room = currentRoom(s);
+  if (!room) {
+    return new Immutable.List();
+  }
+
+  const peers = peerMap(s);
+  return room.get('djs').map((peerId) => {
+    return peers.get(peerId);
+  });
+};
+const audience = (s) => {
+  const room = currentRoom(s);
+  if (!room) {
+    return new Immutable.List();
+  }
+
+  const djs = room.get('djs').toSet();
+  return currentRoom(s).get('peers').filter(p => !djs.has(p.get('id')));
+};
+
 export const Selectors = {
-  store: s => s.getIn(['services', 'rooms']),
-  rooms: s => s.getIn(['services', 'rooms', 'rooms']),
-  currentRoom: s => s.getIn(['services', 'rooms', 'currentRoom']),
+  store,
+  rooms,
+  currentRoom,
+  peerMap,
+  djs,
+  audience,
 };
 
 ////
@@ -122,23 +176,23 @@ function* joinRoom({id}) {
   yield put(Actions.joinRoomSuccess({room: Immutable.fromJS(resp)}));
 }
 
-function* takeRPC(name, actionCreator) {
-  yield takeEvery(({type, name: incName}) => {
-    return type === BuoyActionTypes.RECEIVE && name === incName;
-  }, function*({params}) {
-    const keys = Object.keys(params);
-    const immutable = keys.reduce((map, key) => {
-      return {...map, [key]: Immutable.fromJS(params[key])};
-    }, {});
+function* becomeDj() {
+  const resp = yield call(send, {name: 'becomeDj'});
 
-    yield put(actionCreator(immutable));
-  });
+  if (resp.error) {
+    yield put(Actions.becomeDjFailure({message: resp.message}));
+    return;
+  }
+
+  yield put(Actions.becomeDjSuccess());
 }
 
 export function* Saga() {
   yield takeEvery(ActionTypes.FETCH_ALL, fetchAll);
   yield takeEvery(ActionTypes.CREATE_ROOM, createRoom);
   yield takeEvery(ActionTypes.JOIN_ROOM, joinRoom);
+  yield takeEvery(ActionTypes.BECOME_DJ, becomeDj);
 
   yield* takeRPC('setPeers', Actions.setPeers);
+  yield* takeRPC('setDjs', Actions.setDjs);
 }
