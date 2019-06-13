@@ -193,7 +193,7 @@ function* join({inviteCode}) {
   store.buoys.push(buoy);
   db.put(store);
   yield fork(listen);
-  yield put(Actions.joinSuccess({token: resp.token, buoy}));
+  yield put(Actions.joinSuccess({token: resp.token, buoy: Immutable.fromJS(buoy)}));
 };
 
 function* connect({buoy}) {

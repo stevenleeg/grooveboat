@@ -2,6 +2,7 @@ import React, {Fragment, useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {withRouter} from 'react-router';
 import JWT from 'jsonwebtoken';
+import classNames from 'classnames';
 
 import {
   Selectors as RoomSelectors,
@@ -16,17 +17,21 @@ import layout from 'components/layout';
 
 const EXAMPLE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzIjoid3M6Ly9idW95LnRlaWYueHl6LyJ9.Av1Z3HtkzLTMwjyJ_3rs4ARvqpdK8ylHllBrBwF-Vvg';
 
+const SCREEN_INVITE = 'invite';
+const SCREEN_CREATE_ROOM = 'create-room';
+const SCREEN_DEFAULT = 'default';
+
 const RoomSelectorPage = ({history}) => {
   ////
   // Hooks
   //
-  const [showInvite, setShowInvite] = useState(false);
+  const [screen, setScreen] = useState(SCREEN_DEFAULT);
   const [inviteForm, setInviteForm] = useState({
     invite: '',
     roomName: '',
   });
-  const [createForm, showCreateForm] = useState({
-    name: 'da best music',
+  const [createForm, setCreateForm] = useState({
+    name: '',
   });
 
   const rooms = useSelector(RoomSelectors.rooms);
@@ -42,15 +47,21 @@ const RoomSelectorPage = ({history}) => {
   useEffect(() => {
     let token = null;
     if (inviteForm.invite.length > 0) {
+      const str = inviteForm.invite
+        .replace(' ', '')
+        .replace("\n", '');
       try {
-        token = JWT.decode(inviteForm.invite)
+        token = JWT.decode(str)
       } catch (e) {
         token = null;
         return;
       }
 
       if (token && token.u) {
-        dispatch(Actions.joinBuoy({inviteCode: inviteForm.invite}));
+        dispatch(Actions.joinBuoy({
+          inviteCode: str,
+          callback: () => setScreen(SCREEN_DEFAULT),
+        }));
       }
     }
   }, [inviteForm]);
@@ -73,7 +84,7 @@ const RoomSelectorPage = ({history}) => {
         <p>connecting...</p>
       </Fragment>
     );
-  } else if (showInvite) {
+  } else if (screen === SCREEN_INVITE) {
     content = (
       <Fragment>
         <h1>join a buoy</h1>
@@ -92,27 +103,14 @@ const RoomSelectorPage = ({history}) => {
       <Fragment>
         <h1>welcome</h1>
         <p>
-          hmm, looks like you haven't joined a buoy yet. <a onClick={() => setShowInvite(true)}>have an invite code?</a>
+          hmm, looks like you haven't joined a buoy yet. <a onClick={() => setScreen(SCREEN_INVITE)}>have an invite code?</a>
         </p>
       </Fragment>
     );
-  } else if (connectedBuoy) {
+  } else if (screen === SCREEN_CREATE_ROOM) {
     content = (
       <Fragment>
-        <h1>join a room</h1>
-        <p>you are connected to {connectedBuoy.get('name')}</p>
-        {rooms.map((room) => {
-          return (
-            <div
-              key={room.get('id')}
-              className="room-selector--room"
-              onClick={() => history.push(`/rooms/${room.get('id')}`)}
-            >
-              {room.get('name')}
-            </div>
-          );
-        })}
-        <hr />
+        <h2>create room</h2>
         <label>room name:</label>
         <input
           type="text"
@@ -128,6 +126,42 @@ const RoomSelectorPage = ({history}) => {
         >
           create room
         </button>
+      </Fragment>
+    );
+  } else if (connectedBuoy && screen === SCREEN_DEFAULT) {
+    content = (
+      <Fragment>
+        <h1>join a room</h1>
+        <p>you are connected to {connectedBuoy.get('name')}</p>
+        <div
+          className={classNames([
+            'room-selector--rooms',
+            {none: rooms.count() === 0},
+          ])}
+        >
+          {rooms.map((room) => {
+            return (
+              <div
+                key={room.get('id')}
+                className="room-selector--room"
+                onClick={() => history.push(`/rooms/${room.get('id')}`)}
+              >
+                {room.get('name')}
+              </div>
+            );
+          })}
+          {rooms.count() === 0 && (
+            <div className="room-selector--none">
+              no rooms found.&nbsp;
+              <span onClick={() => setScreen(SCREEN_CREATE_ROOM)}>
+                create one?
+              </span>
+            </div>
+          )}
+        </div>
+        {rooms.count() !== 0 && (
+          <button onClick={() => setScreen(SCREEN_CREATE_ROOM)}>create room</button>
+        )}
       </Fragment>
     );
   }

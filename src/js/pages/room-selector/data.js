@@ -53,7 +53,7 @@ function* init() {
   yield put(RoomActions.fetchAll());
 }
 
-function* joinBuoy({inviteCode}) {
+function* joinBuoy({inviteCode, callback}) {
   yield put(BuoyActions.join({inviteCode}));
 
   const {type, token} = yield take([
@@ -67,6 +67,7 @@ function* joinBuoy({inviteCode}) {
 
   // Fetch the rooms in the buoy
   yield put(RoomActions.fetchAll());
+  yield call(callback);
 }
 
 function* createRoom({name, callback}) {

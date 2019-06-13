@@ -25,3 +25,37 @@
 .room-selector--invite {
   font-family: monospace;
 }
+
+.room-selector--rooms {
+  background-color: $color-light-gray;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+
+  &.none {
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.room-selector--room {
+  padding: 15px;
+  cursor: pointer;
+  transition: 150ms;
+
+  &:not(:nth-last-child(1)) {
+    border-bottom: 1px solid $color-border;
+  }
+
+  &:hover {
+    background: $color-blue;
+    color: $color-white;
+  }
+}
+
+.room-selector--none {
+  span {
+    color: $color-blue;
+    cursor: pointer;
+  }
+}
