@@ -133,11 +133,14 @@ const RoomSelectorPage = ({history}) => {
   }
 
   return (
-    <div className="room-selector--container">
-      <div className="room-selector--box">
-        {content}
+    <Fragment>
+      <div className="room-selector--dragbar" />
+      <div className="room-selector--container">
+        <div className="room-selector--box">
+          {content}
+        </div>
       </div>
-    </div>
+    </Fragment>
   );
 };
 

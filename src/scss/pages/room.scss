@@ -1,16 +1,5 @@
 $sidebar-width: 300px;
 
-@mixin drag-region($color) {
-  &:before {
-    content: "";
-    display: block;
-    height: 25px;
-    width: 100%;
-    -webkit-app-region: drag;
-    background: $color;
-  }
-}
-
 .room--container {
   display: flex;
   height: 100vh;
@@ -23,7 +12,10 @@ $sidebar-width: 300px;
   display: flex;
   flex-direction: column;
 
-  @include drag-region($color-white);
+  &:before {
+    content: "";
+    @include drag-region($color-white);
+  }
 }
 
 .sidebar--tabs {
@@ -102,7 +94,10 @@ $sidebar-width: 300px;
   align-items: center;
   flex-direction: column;
 
-  @include drag-region($color-dark-gray);
+  &:before {
+    content: "";
+    @include drag-region($color-dark-gray);
+  }
 
   .stage--nowplaying {
     display: flex;

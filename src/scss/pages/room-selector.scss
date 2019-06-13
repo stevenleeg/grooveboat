@@ -1,3 +1,7 @@
+.room-selector--dragbar {
+  @include drag-region($color-light-gray);
+}
+
 .room-selector--container {
   display: flex;
   flex: 1;

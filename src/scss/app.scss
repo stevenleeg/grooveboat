@@ -26,6 +26,14 @@ $header-height: 50px;
   font-family: 'Codystar', cursive;
 }
 
+@mixin drag-region($background-color) {
+  display: block;
+  height: 25px;
+  width: 100%;
+  -webkit-app-region: drag;
+  background: $background-color;
+}
+
 body {
   @include font;
   background: $color-light-gray;
@@ -93,6 +101,7 @@ a {
 .container {
   display: flex;
   min-height: 100vh;
+  flex-direction: column;
 }
 
 .spacer {
