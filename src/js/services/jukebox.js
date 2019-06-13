@@ -1,8 +1,9 @@
 import Immutable from 'immutable';
-import {takeEvery, call} from 'redux-saga/effects';
+import {takeEvery, call, take, select, put} from 'redux-saga/effects';
+import {eventChannel} from 'redux-saga';
 
 import {createAction} from 'utils/redux';
-import {rpcToAction} from './buoys';
+import {send, rpcToAction} from './buoys';
 
 ////
 // Helpers
@@ -10,15 +11,30 @@ import {rpcToAction} from './buoys';
 const player = new Audio();
 window.player = player;
 
+const playerChannel = () => {
+  return eventChannel((emit) => {
+    const handler = () => emit({event: 'ended'});
+
+    player.addEventListener('ended', handler);
+
+    return () => {
+      player.removeEventListener('ended', handler);
+      player.pause();
+    };
+  });
+};
+
 ////
 // Actions
 //
 export const ActionTypes = {
   PLAY_TRACK: 'services/jukebox/play_track',
+  TRACK_ENDED: 'services/jukebox/track_ended',
 };
 
 export const Actions = {
   playTrack: createAction(ActionTypes.PLAY_TRACK, 'track'),
+  trackEnded: createAction(ActionTypes.TRACK_ENDED, 'track'),
 };
 
 ////
@@ -53,6 +69,19 @@ export const Selectors = {
 ///
 // Sagas
 //
+function* init() {
+  const playerEvents = yield call(playerChannel);
+
+  while (true) {
+    const {event} = yield take(playerEvents);
+
+    if (event === 'ended') {
+      const track = yield select(currentTrack);
+      yield put(Actions.trackEnded({track}));
+    }
+  }
+}
+
 function* playTrack({track}) {
   const file = yield call(window.ipfs.cat, track.get('ipfsHash'));
   player.src = `data:audio/mp3;base64,${file.toString('base64')}`;
@@ -61,8 +90,14 @@ function* playTrack({track}) {
   player.play();
 }
 
+function* trackEnded({track}) {
+  yield call(send, {name: 'trackEnded'});
+}
+
 export function* Saga() {
+  yield takeEvery('init', init);
   yield takeEvery(ActionTypes.PLAY_TRACK, playTrack);
+  yield takeEvery(ActionTypes.TRACK_ENDED, trackEnded);
 
   yield rpcToAction('playTrack', Actions.playTrack);
 }

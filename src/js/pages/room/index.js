@@ -65,16 +65,18 @@ const Stage = ({djs, activeDj, currentTrack}) => {
             );
           }
 
+
+          // TODO: Add the popularity bar back in:
+          //<div className="popularity-bar">
+          //  <div className="ups" />
+          //  <div className="downs" />
+          //</div>
           return (
             <Peer
               key={peer.get('id')}
               peer={peer}
               className={classNames({active: peer.get('id') === activeDj})}
             >
-              <div className="popularity-bar">
-                <div className="ups" />
-                <div className="downs" />
-              </div>
             </Peer>
           );
         })}
