@@ -124,10 +124,11 @@ const Queues = () => {
       </select>
 
       <ul className="queues--tracks">
-        {queue.get('tracks').map((track) => {
+        {queue && queue.get('tracks').map((track) => {
           return (
             <li key={track.get('_id')}>
               {track.get('filename')}
+              <a onClick={() => dispatch(LibraryActions.deleteTrack({track}))}>[x]</a>
             </li>
           );
         })}

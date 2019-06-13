@@ -2,7 +2,7 @@
   "name": "grooveboat",
   "version": "1.0.0",
   "description": "A decentralized turntable.fm clone",
-  "main": "index.js",
+  "main": "src/js/electron.js",
   "author": "Steve Gattuso <steve@stevegattuso.me>",
   "license": "MIT",
   "alias": {
@@ -13,17 +13,28 @@
     "utils": "./src/js/utils"
   },
   "scripts": {
-    "start": "parcel src/index.html"
+    "react-start": "parcel src/index.html",
+    "electron-start": "electron .",
+    "start": "concurrently \"yarn react-start\" \"wait-on http://localhost:1234 && electron .\""
   },
+  "browserslist": [
+    "last 2 Chrome versions"
+  ],
   "devDependencies": {
+    "concurrently": "^4.1.0",
+    "electron": "^5.0.3",
     "parcel": "^1.12.3",
     "sass": "^1.21.0",
-    "typescript": "^3.5.1"
+    "typescript": "^3.5.1",
+    "wait-on": "^3.2.0"
   },
   "dependencies": {
+    "axios": "^0.19.0",
     "babel-polyfill": "^6.26.0",
     "classnames": "^2.2.6",
+    "go-ipfs-dep": "^0.4.21",
     "immutable": "^4.0.0-rc.12",
+    "ipfsd-ctl": "^0.42.4",
     "jsmediatags": "^3.8.1",
     "jsonwebtoken": "^8.5.1",
     "pouchdb-browser": "^7.0.0",
@@ -32,6 +43,7 @@
     "react-dropzone": "^10.1.5",
     "react-redux": "^7.1.0-rc.1",
     "react-router-dom": "^5.0.1",
+    "readable-stream": "^3.4.0",
     "redux": "^4.0.1",
     "redux-logger": "^3.0.6",
     "redux-saga": "^1.0.3",

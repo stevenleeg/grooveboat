@@ -1,5 +1,5 @@
 import {createAction} from 'utils/redux';
-import {takeEvery, put, call} from 'redux-saga/effects';
+import {takeEvery, select, put, call} from 'redux-saga/effects';
 import Immutable from 'immutable';
 
 import {
@@ -8,6 +8,9 @@ import {
   rpcToSaga,
   ActionTypes as BuoyActionTypes,
 } from './buoys';
+import {
+  Selectors as LibrarySelectors
+} from './library';
 
 ////
 // Actions
@@ -183,6 +186,15 @@ function* joinRoom({id}) {
 }
 
 function* becomeDj() {
+  // Make sure they have at least one track in their current playlist
+  const currentQueue = yield select(LibrarySelectors.selectedQueueWithTracks);
+  if (currentQueue.get('tracks').count() === 0) {
+    yield put(Actions.becomeDjFailure({
+      message: 'you need at least one track in your queue to become a dj',
+    }));
+    return;
+  }
+
   const resp = yield call(send, {name: 'becomeDj'});
 
   if (resp.error) {

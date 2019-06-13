@@ -8,12 +8,18 @@ const get = id => db.get(id).then((result) => {
 });
 
 const put = (doc) => {
-  if (!Immutable.Iterable.isIterable(doc)) return db.put(doc);
+  if (!Immutable.isImmutable(doc)) return db.put(doc);
   return db.put(doc.toJS());
+};
+
+const remove = (doc) => {
+  if (!Immutable.isImmutable(doc)) return db.remove(doc);
+  return db.remove(doc.toJS());
 };
 
 export default {
   ...db,
+  remove,
   get,
   put,
 };

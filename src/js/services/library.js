@@ -7,24 +7,18 @@ import db from 'db';
 import {createAction} from 'utils/redux';
 import {rpcToAction,} from './buoys';
 
-////
-// Helpers
-//
-const readFile = ({file}) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      resolve(reader.result);
-    };
-
-    reader.readAsArrayBuffer(file);
-  });
-};
-
 const readTags = ({file}) => {
   return new Promise((resolve, reject) => {
     JSMediaTags.read(file, {onSuccess: resolve, onError: reject});
+  });
+};
+
+const readFile = ({file}) => {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onloadend = e => resolve(e.target.result);
+    fr.onerror = e => reject(e);
+    fr.readAsArrayBuffer(file);
   });
 };
 
@@ -32,9 +26,13 @@ const readTags = ({file}) => {
 // Actions
 //
 export const ActionTypes = {
-  ADD_TRACK: 'services/library/add-track',
+  ADD_TRACK: 'services/library/add_track',
   ADD_TRACK_SUCCESS: 'services/library/add_track_success',
   ADD_TRACK_FAILURE: 'services/library/add_track_failure',
+
+  DELETE_TRACK: 'services/library/delete_track',
+  DELETE_TRACK_SUCCESS: 'services/library/delete_track_success',
+  DELETE_TRACK_FAILURE: 'services/library/delete_track_failure',
 
   SET_SELECTED_QUEUE: 'services/library/set_selected_queue',
   SET_TRACK: 'services/library/set_track',
@@ -47,6 +45,10 @@ export const Actions = {
   addTrack: createAction(ActionTypes.ADD_TRACK, 'file'),
   addTrackSuccess: createAction(ActionTypes.ADD_TRACK_SUCCESS, 'track'),
   addTrackFailure: createAction(ActionTypes.ADD_TRACK_FAILURE, 'message'),
+
+  deleteTrack: createAction(ActionTypes.DELETE_TRACK, 'track'),
+  deleteTrackSuccess: createAction(ActionTypes.DELETE_TRACK_SUCCESS, 'trackId'),
+  deleteTrackFailure: createAction(ActionTypes.DELETE_TRACK_FAILURE, 'message'),
 
   setSelectedQueue: createAction(ActionTypes.SET_SELECTED_QUEUE, 'queue'),
   setTrack: createAction(ActionTypes.SET_TRACK, 'track'),
@@ -76,6 +78,23 @@ const callbacks = [
     },
   },
   {
+    actionType: ActionTypes.DELETE_TRACK_SUCCESS,
+    callback: (s, {trackId}) => {
+      const trackIndex = s
+        .getIn(['selectedQueue', 'trackIds'])
+        .indexOf(trackId);
+
+      let updatedQueue = s.get('selectedQueue');
+      if (trackIndex !== -1) {
+        updatedQueue = updatedQueue.deleteIn(['trackIds', trackIndex]);
+      }
+
+      return s
+        .deleteIn(['tracks', trackId])
+        .merge({selectedQueue: updatedQueue});
+    },
+  },
+  {
     actionType: ActionTypes.SET_SELECTED_QUEUE,
     callback: (s, {queue}) => s.merge({selectedQueue: queue}),
   },
@@ -88,6 +107,10 @@ export const Selectors = {
   selectedQueueWithTracks: (s) => {
     const allTracks = s.getIn(['services', 'library', 'tracks']);
     const queue = s.getIn(['services', 'library', 'selectedQueue']);
+    if (!queue) {
+      return null;
+    }
+
     const tracks = queue.get('trackIds')
       .map(trackId => allTracks.get(trackId))
       .filter(track => !!track);
@@ -139,7 +162,6 @@ function* init() {
 
 function* addTrack({file}) {
   const id3 = (yield call(readTags, {file})).tags;
-  console.log(id3);
   const filename = file.name.split('.').slice(0, -1).join('.');
   const tags = {
     filename,
@@ -148,18 +170,13 @@ function* addTrack({file}) {
     track: (id3.TIT2 ? id3.TIT2.data.trim() : null),
   };
 
+  // Convert to a buffer
   // Pin the track onto IPFS
-  let buffer;
-  try {
-    buffer = yield call(readFile, {file});
-  } catch (e) {
-    yield put(Actions.addTrackFailure({message: e.toString()}));
-    return
-  }
-
   let resp;
   try {
-    resp = yield call(window.ipfs.add, Buffer.from(buffer), {pin: true});
+    resp = yield call(window.ipfs.addFromFs, file.path, {
+      pin: true,
+    });
   } catch (e) {
     yield put(Actions.addTrackFailure({message: e.toString()}));
     return;
@@ -168,13 +185,17 @@ function* addTrack({file}) {
   const {hash} = resp[0];
 
   // Put the track into our db
-  const track = Immutable.fromJS({
+  const tmpTrack = Immutable.fromJS({
     ...tags,
     _id: `track/${uuid()}`,
     ipfsHash: hash,
     createdAt: Date.now(),
   });
-  yield call(db.put, track);
+  resp = yield call(db.put, tmpTrack);
+  const track = tmpTrack.merge({
+    _id: resp.id,
+    _rev: resp.rev,
+  });
 
   // Add the track to our currently selected queue
   const currentQueue = yield select(Selectors.selectedQueue);
@@ -204,9 +225,48 @@ function* requestTrack({callback}) {
   callback({track: track.deleteAll(['_id', '_rev']).toJS()});
 }
 
+function* deleteTrack({track}) {
+  // Remove the track from all queues
+  const queues = yield call(db.get, 'queues');
+  for (const queueId of queues.get('queueIds')) {
+    const queue = yield call(db.get, queueId);
+    const trackIndex = queue.get('trackIds').indexOf(track.get('_id'));
+    if (trackIndex === -1) {
+      continue;
+    }
+
+    const updatedQueue = queue.deleteIn(['trackIds', trackIndex]);
+    try {
+      yield call(db.put, updatedQueue);
+    } catch (e) {
+      yield put(Actions.deleteTrackFailure({message: e.message}));
+      return;
+    }
+  }
+
+  // Remove the track from the database
+  try {
+    yield call(db.remove, track);
+  } catch (e) {
+    yield put(Actions.deleteTrackFailure({message: e.message}));
+    return;
+  }
+
+  // Unpin on IPFS
+  try {
+    yield call(window.ipfs.pin.rm, track.get('ipfsHash'));
+  } catch (e) {
+    yield put(Actions.deleteTrackFailure({message: e.toString()}));
+    return;
+  }
+
+  yield put(Actions.deleteTrackSuccess({trackId: track.get('_id')}));
+}
+
 export function* Saga() {
   yield takeEvery('init', init);
   yield takeEvery(ActionTypes.ADD_TRACK, addTrack);
+  yield takeEvery(ActionTypes.DELETE_TRACK, deleteTrack);
   yield takeEvery(ActionTypes.ADD_TO_QUEUE, addToQueue);
   yield takeEvery(ActionTypes.REQUEST_TRACK, requestTrack);
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import {Link} from 'react-router-dom';
 
 export const LoadingState = ({title, subtitle}) => {
   return (
@@ -14,6 +15,7 @@ export const ErrorState = ({message}) => {
     <div className="bigstates--error">
       <h1>yikes</h1>
       <p>{message}</p>
+      <p><Link to="/">go back</Link></p>
     </div>
   );
 };
