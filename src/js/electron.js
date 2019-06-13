@@ -69,7 +69,7 @@ const createWindow = () => {
     height: 680,
   });
 
-  window.loadURL('http://localhost:1234');
+  window.loadURL('http://10.0.13.80:1234');
   window.on('closed', () => {
     const index = windows.indexOf(window);
     if (index !== -1) {
