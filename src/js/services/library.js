@@ -161,14 +161,25 @@ function* init() {
 }
 
 function* addTrack({file}) {
-  const id3 = (yield call(readTags, {file})).tags;
   const filename = file.name.split('.').slice(0, -1).join('.');
-  const tags = {
-    filename,
-    artist: (id3.TPE1 ? id3.TPE1.data.trim() : null),
-    album: (id3.TALB ? id3.TALB.data.trim() : null),
-    track: (id3.TIT2 ? id3.TIT2.data.trim() : null),
-  };
+  let tags = {};
+  try {
+    const id3 = (yield call(readTags, {file})).tags;
+    tags = {
+      filename,
+      artist: (id3.TPE1 ? id3.TPE1.data.trim() : null),
+      album: (id3.TALB ? id3.TALB.data.trim() : null),
+      track: (id3.TIT2 ? id3.TIT2.data.trim() : null),
+    };
+  } catch (e) {
+    console.log('could not read tags, falling back to filename'),
+    tags = {
+      filename,
+      artist: null,
+      album: null,
+      track: null,
+    };
+  }
 
   // Convert to a buffer
   // Pin the track onto IPFS
