@@ -211,9 +211,6 @@ const RoomPage = ({match}) => {
 
   return (
     <Fragment>
-      <div className="header">
-        <div className="logo">🕺🚢</div>
-      </div>
       <div className="room--container">
         <div className="room--content">
           <Stage djs={djs} activeDj={room.get('activeDj')} currentTrack={currentTrack} />

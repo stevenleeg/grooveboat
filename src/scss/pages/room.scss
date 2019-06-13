@@ -1,5 +1,16 @@
 $sidebar-width: 300px;
 
+@mixin drag-region($color) {
+  &:before {
+    content: "";
+    display: block;
+    height: 25px;
+    width: 100%;
+    -webkit-app-region: drag;
+    background: $color;
+  }
+}
+
 .room--container {
   display: flex;
   height: 100vh;
@@ -11,6 +22,8 @@ $sidebar-width: 300px;
   background: $color-white;
   display: flex;
   flex-direction: column;
+
+  @include drag-region($color-white);
 }
 
 .sidebar--tabs {
@@ -89,6 +102,8 @@ $sidebar-width: 300px;
   align-items: center;
   flex-direction: column;
 
+  @include drag-region($color-dark-gray);
+
   .stage--nowplaying {
     display: flex;
     @include fancy-font;
@@ -113,22 +128,26 @@ $sidebar-width: 300px;
       cursor: pointer;
       transition: 150ms;
       height: 100%;
-      padding: 25px 20px;
+      padding: 20px 20px;
     }
 
     .up {
       margin-right: 10px;
+      border-top-right-radius: 5px;
 
       &:hover {
-        background-color: $color-green;
+        text-shadow: 0px 0px 25px $color-green;
+        transform: translateY(-7px);
       }
     }
 
     .down {
       margin-left: 10px;
+      border-top-left-radius: 5px;
 
       &:hover {
-        background-color: $color-red;
+        text-shadow: 0px 0px 25px $color-red;
+        transform: translateY(7px);
       }
     }
   }
