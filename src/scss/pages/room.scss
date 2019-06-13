@@ -11,11 +11,6 @@ $sidebar-width: 300px;
   background: $color-white;
   display: flex;
   flex-direction: column;
-
-  &:before {
-    content: "";
-    @include drag-region($color-white);
-  }
 }
 
 .sidebar--tabs {
@@ -89,63 +84,65 @@ $sidebar-width: 300px;
   }
 }
 
+.nowplaying {
+  @include fancy-font;
+  width: 100%;
+  font-size: 32px;
+  background-color: $color-dark-gray;
+  color: $color-white;
+  cursor: default;
+
+  .nowplaying--content {
+    display: flex;
+    align-items: center;
+  }
+
+  .nowplaying--dragbar {
+    @include drag-region($color-dark-gray);
+  }
+
+  .song {
+    flex: 1;
+    text-overflow: hidden;
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .up, .down {
+    box-sizing: border-box;
+    font-size: 32px;
+    cursor: pointer;
+    transition: 150ms;
+    height: 100%;
+    padding: 20px 20px;
+  }
+
+  .up {
+    margin-right: 10px;
+    border-top-right-radius: 5px;
+
+    &:hover {
+      text-shadow: 0px 0px 25px $color-green;
+      transform: translateY(-7px);
+    }
+  }
+
+  .down {
+    margin-left: 10px;
+    border-top-left-radius: 5px;
+
+    &:hover {
+      text-shadow: 0px 0px 25px $color-red;
+      transform: translateY(7px);
+    }
+  }
+}
+
 .room--stage {
   display: flex;
   align-items: center;
   flex-direction: column;
-
-  &:before {
-    content: "";
-    @include drag-region($color-dark-gray);
-  }
-
-  .stage--nowplaying {
-    display: flex;
-    @include fancy-font;
-    width: 100%;
-    font-size: 32px;
-    background-color: $color-dark-gray;
-    color: $color-white;
-    cursor: default;
-    align-items: center;
-
-    .song {
-      flex: 1;
-      text-overflow: hidden;
-      white-space: nowrap;
-      overflow: hidden;
-      text-align: center;
-    }
-
-    .up, .down {
-      box-sizing: border-box;
-      font-size: 32px;
-      cursor: pointer;
-      transition: 150ms;
-      height: 100%;
-      padding: 20px 20px;
-    }
-
-    .up {
-      margin-right: 10px;
-      border-top-right-radius: 5px;
-
-      &:hover {
-        text-shadow: 0px 0px 25px $color-green;
-        transform: translateY(-7px);
-      }
-    }
-
-    .down {
-      margin-left: 10px;
-      border-top-left-radius: 5px;
-
-      &:hover {
-        text-shadow: 0px 0px 25px $color-red;
-        transform: translateY(7px);
-      }
-    }
-  }
 
   .peer {
     position: relative;

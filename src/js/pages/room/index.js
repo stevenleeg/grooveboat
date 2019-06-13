@@ -23,6 +23,26 @@ import {
 import {LoadingState, ErrorState} from 'components/bigstates';
 import {Actions} from './data';
 
+const NowPlaying = ({currentTrack}) => {
+  let song = 'Awaiting track...';
+  if (currentTrack && currentTrack.get('artist') && currentTrack.get('track')) {
+    song = `${currentTrack.get('artist')} - ${currentTrack.get('track')}`;
+  } else if (currentTrack && currentTrack.get('filename')) {
+    song = currentTrack.get('filename');
+  }
+
+  return (
+    <div className="nowplaying">
+      <div className="nowplaying--dragbar" />
+      <div className="nowplaying--content">
+        <div className="up">👍</div>
+        <div className="song">{song}</div>
+        <div className="down">👎</div>
+      </div>
+    </div>
+  );
+};
+
 const Stage = ({djs, activeDj, currentTrack}) => {
   ////
   // Hooks
@@ -32,20 +52,8 @@ const Stage = ({djs, activeDj, currentTrack}) => {
   ////
   // Render
   //
-  let song = 'Awaiting track...';
-  if (currentTrack && currentTrack.get('artist') && currentTrack.get('track')) {
-    song = `${currentTrack.get('artist')} - ${currentTrack.get('track')}`;
-  } else if (currentTrack && currentTrack.get('filename')) {
-    song = currentTrack.get('filename');
-  }
-
   return (
     <div className="room--stage">
-      <div className="stage--nowplaying">
-        <div className="up">👍</div>
-        <div className="song">{song}</div>
-        <div className="down">👎</div>
-      </div>
       <div className="stage--djs">
         {Immutable.Range(0, 5).map((_, i) => {
           const peer = djs.get(i);
@@ -213,9 +221,10 @@ const RoomPage = ({match}) => {
 
   return (
     <Fragment>
+      <NowPlaying currentTrack={currentTrack} />
       <div className="room--container">
         <div className="room--content">
-          <Stage djs={djs} activeDj={room.get('activeDj')} currentTrack={currentTrack} />
+          <Stage djs={djs} activeDj={room.get('activeDj')} />
           <Audience peers={audience} />
         </div>
         <Sidebar />
