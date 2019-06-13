@@ -1,3 +1,4 @@
+import Immutable from 'immutable';
 import {takeEvery, call} from 'redux-saga/effects';
 
 import {createAction} from 'utils/redux';
@@ -18,6 +19,35 @@ export const ActionTypes = {
 
 export const Actions = {
   playTrack: createAction(ActionTypes.PLAY_TRACK, 'track'),
+};
+
+////
+// Reducer
+//
+const initialState = Immutable.fromJS({
+  currentTrack: null,
+});
+
+const callbacks = [
+  {
+    actionType: ActionTypes.PLAY_TRACK,
+    callback: (s, {track}) => {
+      return s.merge({currentTrack: track});
+    },
+  },
+];
+
+export const Reducers = {initialState, callbacks};
+
+////
+// Selectors
+//
+const store = s => s.getIn(['services', 'jukebox']);
+const currentTrack = s => store(s).get('currentTrack');
+
+export const Selectors = {
+  store,
+  currentTrack,
 };
 
 ///

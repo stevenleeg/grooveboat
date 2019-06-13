@@ -17,6 +17,9 @@ import {
   Actions as LibraryActions,
   Selectors as LibrarySelectors,
 } from 'services/library';
+import {
+  Selectors as JukeboxSelectors,
+} from 'services/jukebox';
 import {LoadingState, ErrorState} from 'components/bigstates';
 import {Actions} from './data';
 
@@ -29,13 +32,18 @@ const Stage = ({djs, activeDj, currentTrack}) => {
   ////
   // Render
   //
+  let song = 'Awaiting track...';
+  if (currentTrack && currentTrack.get('artist') && currentTrack.get('track')) {
+    song = `${currentTrack.get('artist')} - ${currentTrack.get('track')}`;
+  } else if (currentTrack && currentTrack.get('filename')) {
+    song = currentTrack.get('filename');
+  }
+
   return (
     <div className="room--stage">
       <div className="stage--nowplaying">
         <div className="up">👍</div>
-        <div className="song">
-          Awaiting track...
-        </div>
+        <div className="song">{song}</div>
         <div className="down">👎</div>
       </div>
       <div className="stage--djs">
@@ -180,6 +188,7 @@ const RoomPage = ({match}) => {
   const room = useSelector(RoomSelectors.currentRoom);
   const djs = useSelector(RoomSelectors.djs);
   const audience = useSelector(RoomSelectors.audience);
+  const currentTrack = useSelector(JukeboxSelectors.currentTrack);
 
   useEffect(() => {
     dispatch(Actions.init({
@@ -207,7 +216,7 @@ const RoomPage = ({match}) => {
       </div>
       <div className="room--container">
         <div className="room--content">
-          <Stage djs={djs} activeDj={room.get('activeDj')} />
+          <Stage djs={djs} activeDj={room.get('activeDj')} currentTrack={currentTrack} />
           <Audience peers={audience} />
         </div>
         <Sidebar />
