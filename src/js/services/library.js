@@ -267,8 +267,11 @@ function* deleteTrack({track}) {
   try {
     yield call(window.ipfs.pin.rm, track.get('ipfsHash'));
   } catch (e) {
-    yield put(Actions.deleteTrackFailure({message: e.toString()}));
-    return;
+    if (e.message !== 'not pinned or pinned indirectly') {
+      yield put(Actions.deleteTrackFailure({message: e.toString()}));
+    } else {
+      return;
+    }
   }
 
   yield put(Actions.deleteTrackSuccess({trackId: track.get('_id')}));

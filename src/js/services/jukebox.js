@@ -29,11 +29,13 @@ const playerChannel = () => {
 //
 export const ActionTypes = {
   PLAY_TRACK: 'services/jukebox/play_track',
+  STOP_TRACK: 'services/jukebox/stop_track',
   TRACK_ENDED: 'services/jukebox/track_ended',
 };
 
 export const Actions = {
   playTrack: createAction(ActionTypes.PLAY_TRACK, 'track'),
+  stopTrack: createAction(ActionTypes.STOP_TRACK),
   trackEnded: createAction(ActionTypes.TRACK_ENDED, 'track'),
 };
 
@@ -49,6 +51,12 @@ const callbacks = [
     actionType: ActionTypes.PLAY_TRACK,
     callback: (s, {track}) => {
       return s.merge({currentTrack: track});
+    },
+  },
+  {
+    actionType: ActionTypes.STOP_TRACK,
+    callback: (s, {track}) => {
+      return s.merge({currentTrack: null});
     },
   },
 ];
@@ -94,10 +102,16 @@ function* trackEnded({track}) {
   yield call(send, {name: 'trackEnded'});
 }
 
+function* stopTrack() {
+  player.pause();
+}
+
 export function* Saga() {
   yield takeEvery('init', init);
   yield takeEvery(ActionTypes.PLAY_TRACK, playTrack);
   yield takeEvery(ActionTypes.TRACK_ENDED, trackEnded);
+  yield takeEvery(ActionTypes.STOP_TRACK, stopTrack);
 
-  yield rpcToAction('playTrack', Actions.playTrack);
+  yield* rpcToAction('playTrack', Actions.playTrack);
+  yield* rpcToAction('stopTrack', Actions.stopTrack);
 }

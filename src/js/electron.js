@@ -59,8 +59,7 @@ const windows = [];
 const createWindow = () => {
   const additionals = {};
   if (windows.length > 0) {
-    additionals.partition = uuid();
-    console.log('starting new partition', uuid());
+    additionals.partition = `persist:${windows.length}`;
   }
 
   const window = new BrowserWindow({
@@ -84,39 +83,33 @@ const createWindow = () => {
   });
 
   window.toggleDevTools();
-
   windows.push(window);
 };
 
 app.on('ready', () => {
   const template = [
-    {
-      label: 'grooveboat',
+    ...(process.platform === 'darwin' ? [{
+      label: app.getName(),
       submenu: [
-        {role: 'about'},
-        {type: 'separator'},
+        { role: 'about' },
+        { type: 'separator' },
         {label: 'New Window', click: createWindow},
-        {role: 'services', submenu: []},
-        {role: 'hideothers'},
-        {role: 'unhide'},
-        {type: 'separator'},
-        {role: 'quit'},
-      ],
-    },
-    {
-      label: 'Edit',
-      submenu: [
-        {role: 'undo'},
-        {role: 'redo'},
-        {type: 'separator'},
-        {role: 'cut'},
-        {role: 'copy'},
-        {role: 'paste'},
-        {role: 'delete'},
-        {role: 'selectall'},
-      ],
-    },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideothers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    }] : []),
+    { role: 'fileMenu' },
+    { role: 'editMenu' },
+    { role: 'viewMenu' },
+    { role: 'windowMenu' },
   ];
+
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 
@@ -126,7 +119,6 @@ app.on('ready', () => {
 });
 
 app.on('window-all-closed', onQuit);
-process.on('SIGINT', onQuit);
 
 app.on('activate', () => {
   if (windows.length === 0) {
