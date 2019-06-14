@@ -35,9 +35,18 @@ export const ActionTypes = {
   DELETE_TRACK_FAILURE: 'services/library/delete_track_failure',
 
   SET_SELECTED_QUEUE: 'services/library/set_selected_queue',
-  SET_TRACK: 'services/library/set_track',
+  SAVE_SELECTED_QUEUE: 'services/library/save_selected_queue',
+  SAVE_SELECTED_QUEUE_SUCCESS: 'services/library/save_selected_queue_success',
+  SAVE_SELECTED_QUEUE_FAILURE: 'services/library/save_selected_queue_failure',
+
   ADD_TO_QUEUE: 'services/library/add_to_queue',
+  ADD_TO_QUEUE_SUCCESS: 'services/library/add_to_queue_success',
+  ADD_TO_QUEUE_FAILURE: 'services/library/add_to_queue_failure',
+
+  SET_TRACK: 'services/library/set_track',
   CYCLE_SELECTED_QUEUE: 'services/library/cycle_selected_queue',
+  CYCLE_SELECTED_QUEUE_SUCCESS: 'services/library/cycle_selected_queue_success',
+  CYCLE_SELECTED_QUEUE_FAILURE: 'services/library/cycle_selected_queue_failure',
 
   REQUEST_TRACK: 'services/library/request_track',
 };
@@ -52,9 +61,19 @@ export const Actions = {
   deleteTrackFailure: createAction(ActionTypes.DELETE_TRACK_FAILURE, 'message'),
 
   setSelectedQueue: createAction(ActionTypes.SET_SELECTED_QUEUE, 'queue'),
+  saveSelectedQueue: createAction(ActionTypes.SAVE_SELECTED_QUEUE, 'queue'),
+  saveSelectedQueueSuccess: createAction(ActionTypes.SAVE_SELECTED_QUEUE_SUCCESS, 'queue'),
+  saveSelectedQueueFailure: createAction(ActionTypes.SAVE_SELECTED_QUEUE_FAILURE, 'queue'),
+
   setTrack: createAction(ActionTypes.SET_TRACK, 'track'),
   addToQueue: createAction(ActionTypes.ADD_TO_QUEUE, 'trackId', 'queueId'),
+  addToQueueSuccess: createAction(ActionTypes.ADD_TO_QUEUE_SUCCESS, 'track', 'queue'),
+  addToQueueFailure: createAction(ActionTypes.ADD_TO_QUEUE_FAILURE, 'message'),
+
   cycleSelectedQueue: createAction(ActionTypes.CYCLE_SELECTED_QUEUE),
+  cycleSelectedQueueSuccess: createAction(ActionTypes.CYCLE_SELECTED_QUEUE_SUCCESS),
+  cycleSelectedQueueFailure: createAction(ActionTypes.CYCLE_SELECTED_QUEUE_FAILURE),
+
   requestTrack: createAction(ActionTypes.REQUEST_TRACK, 'callback'),
 };
 
@@ -99,6 +118,12 @@ const callbacks = [
   {
     actionType: ActionTypes.SET_SELECTED_QUEUE,
     callback: (s, {queue}) => s.merge({selectedQueue: queue}),
+  },
+  {
+    actionType: ActionTypes.ADD_TO_QUEUE_SUCCESS,
+    callback: (s, {queue}) => {
+      return s.merge({selectedQueue: queue});
+    },
   },
   {
     actionType: ActionTypes.CYCLE_SELECTED_QUEUE,
@@ -219,14 +244,14 @@ function* addTrack({file}) {
     _rev: resp.rev,
   });
 
+  yield put(Actions.addTrackSuccess({track}));
+
   // Add the track to our currently selected queue
   const currentQueue = yield select(Selectors.selectedQueue);
   yield put(Actions.addToQueue({
     trackId: track.get('_id'),
     queueId: currentQueue.get('_id'),
   }));
-
-  yield put(Actions.addTrackSuccess({track}));
 }
 
 function* addToQueue({trackId, queueId}) {
@@ -236,8 +261,18 @@ function* addToQueue({trackId, queueId}) {
   const updatedTrackIds = queue.get('trackIds').push(track.get('_id'));
   const updatedQueue = queue.merge({trackIds: updatedTrackIds});
 
-  yield call(db.put, updatedQueue);
-  yield put(Actions.setSelectedQueue({queue: updatedQueue}));
+  let resp;
+  try {
+    resp = yield call(db.put, updatedQueue);
+  } catch (e) {
+    yield put(Actions.addToQueueFailure({message: e.message}));
+    return;
+  }
+
+  yield put(Actions.addToQueueSuccess({
+    track,
+    queue: updatedQueue.set('_rev', resp.rev),
+  }));
 }
 
 function* requestTrack({callback}) {
@@ -258,13 +293,16 @@ function* deleteTrack({track}) {
       continue;
     }
 
-    const updatedQueue = queue.deleteIn(['trackIds', trackIndex]);
+    let updatedQueue = queue.deleteIn(['trackIds', trackIndex]);
+    let resp;
     try {
-      yield call(db.put, updatedQueue);
+      resp = yield call(db.put, updatedQueue);
     } catch (e) {
       yield put(Actions.deleteTrackFailure({message: e.message}));
       return;
     }
+
+    updatedQueue = updatedQueue.set('_rev', resp.rev);
   }
 
   // Remove the track from the database
@@ -290,8 +328,19 @@ function* deleteTrack({track}) {
 }
 
 function* cycleSelectedQueue() {
-  const currentQueue = yield select(Selectors.selectedQueue);
-  yield call(db.put, currentQueue);
+  const selectedQueue = yield select(Selectors.selectedQueue);
+
+  let resp;
+  try {
+    resp = yield call(db.put, selectedQueue);
+  } catch (e) {
+    yield put(Actions.cycleSelectedQueueFailure({message: e.message}));
+    return;
+  }
+
+  yield put(Actions.cycleSelectedQueueSuccess({
+    queue: selectedQueue.set('_rev', resp.rev),
+  }));
 }
 
 export function* Saga() {
