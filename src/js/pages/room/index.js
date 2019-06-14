@@ -73,7 +73,6 @@ const Stage = ({djs, activeDj, currentTrack}) => {
             );
           }
 
-
           // TODO: Add the popularity bar back in:
           //<div className="popularity-bar">
           //  <div className="ups" />
@@ -193,7 +192,7 @@ const Sidebar = () => {
           className={classNames({selected: mode === MODE_QUEUE})}
           onClick={() => setMode(MODE_QUEUE)}
         >
-          queues
+          queue
         </div>
       </div>
       {mode === MODE_QUEUE && (

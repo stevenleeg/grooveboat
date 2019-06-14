@@ -41,7 +41,7 @@ $sidebar-width: 300px;
 
 .room--audience {
   flex: 1;
-  padding: 25px;
+  padding: 25px 15px;
   display: flex;
 }
 
@@ -117,17 +117,18 @@ $sidebar-width: 300px;
 
     &:hover {
       text-shadow: 0px 0px 25px $color-green;
-      transform: translateY(-7px);
+      transform: translateY(-7px) rotate(-6deg);
     }
   }
 
   .down {
     margin-left: 10px;
     border-top-left-radius: 5px;
+    transform: scaleX(-1);
 
     &:hover {
       text-shadow: 0px 0px 25px $color-red;
-      transform: translateY(7px);
+      transform: scaleX(-1) translateY(7px) rotate(6deg);
     }
   }
 }
@@ -202,7 +203,10 @@ $sidebar-width: 300px;
   flex: 1;
 
   select {
+    display: none;
+    background: $color-white;
     margin: 0px;
+    padding: 10px 15px;
     color: rgba(0,0,0,0);
     text-shadow: 0 0 0 $color-dark-gray;
 
