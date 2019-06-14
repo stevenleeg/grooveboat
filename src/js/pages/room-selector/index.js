@@ -119,6 +119,7 @@ const RoomSelectorPage = ({history}) => {
           onChange={e => setCreateForm({...createForm, name: e.target.value})}
         />
         <button
+          disabled={createForm.name.length === 0}
           onClick={() => dispatch(Actions.createRoom({
             ...createForm,
             callback: onCreateSuccess,

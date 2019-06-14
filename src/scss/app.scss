@@ -72,6 +72,12 @@ button {
   padding: 10px 15px;
   color: $color-white;
   margin: 5px 0px;
+
+  &:disabled {
+    background-color: $color-light-gray;
+    color: $color-dark-gray;
+    cursor: not-allowed;
+  }
 }
 
 input, select, textarea {
