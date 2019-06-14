@@ -219,6 +219,13 @@ $sidebar-width: 300px;
   font-size: 16px;
   color: $color-alt-text;
   margin: 15px;
+  cursor: pointer;
+  outline: none;
+
+  &.active {
+    border: 2px dashed $color-blue;
+    color: $color-blue;
+  }
 }
 
 .queues--tracks {

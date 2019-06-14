@@ -148,7 +148,7 @@ const Queues = () => {
             top = track;
           }
 
-          let bottom = 'Suzanna Vega';
+          let bottom = '';
           if (track.get('artist')) {
             bottom = track.get('artist');
           }
@@ -163,9 +163,15 @@ const Queues = () => {
         })}
       </ul>
 
-      <div className="queues--dropzone" {...getRootProps()}>
+      <div
+        {...getRootProps()}
+        className={classNames({
+          'queues--dropzone': true,
+          'active': isDragActive,
+        })}
+      >
         <input {...getInputProps()} />
-        share 'em
+        {isDragActive ? <Fragment>that's it, drop it!</Fragment> : <Fragment>drop a song</Fragment>}
       </div>
     </div>
   );
