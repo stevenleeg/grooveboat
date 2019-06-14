@@ -122,7 +122,16 @@ const callbacks = [
   },
   {
     actionType: ActionTypes.CONNECT_FAILURE,
-    callback: s => s.merge({connecting: false}),
+    callback: (s, {buoy}) => {
+      const buoyIndex = s.get('buoys').findIndex(b => b.get('_id') === buoy.get('_id'));
+      const updatedBuoys = s.get('buoys').delete(buoyIndex);
+
+      return s.merge({
+        connecting: false,
+        connectedBuoy: null,
+        buoys: updatedBuoys,
+      });
+    },
   },
 
   {
@@ -184,14 +193,17 @@ function* join({inviteCode}) {
       return;
     }
 
-    store = {
+    store = Immutable.fromJS({
       _id: 'buoys',
       buoys: [],
-    };
+    });
   }
 
-  store.buoys.push(buoy);
-  db.put(store);
+  const updatedStore = store.merge({
+    buoys: store.get('buoys').push(buoy),
+  });
+
+  yield call(db.put, updatedStore);
   yield fork(listen);
   yield put(Actions.joinSuccess({token: resp.token, buoy: Immutable.fromJS(buoy)}));
 };
@@ -201,7 +213,7 @@ function* connect({buoy}) {
   try {
     yield call(openSocket, {url: token.u});
   } catch (e) {
-    yield put(Actions.connectFailure({message: e.message}));
+    yield put(Actions.connectFailure({message: e.message, buoy}));
     return;
   }
 
@@ -211,11 +223,30 @@ function* connect({buoy}) {
   });
 
   if (!resp.success) {
-    yield put(Actions.connectFailure(resp));
+    yield put(Actions.connectFailure({...resp, buoy}));
   }
 
   yield fork(listen);
   yield put(Actions.connectSuccess({buoy}));
+}
+
+function* connectFailure({buoy}) {
+  let store;
+  try {
+    store = yield call(db.get, 'buoys');
+  } catch (e) {
+    console.log('could not remove bad buoy');
+    return;
+  }
+
+  const buoyIndex = store.get('buoys')
+    .findIndex(b => b.get('_id') === buoy.get('id'));
+
+  if (buoyIndex !== -1) {
+    const updatedStore = store.deleteIn(['buoys', buoyIndex]);
+    yield call(db.put, updatedStore);
+    console.log('removing bad buoy ', buoy.get('_id'));
+  }
 }
 
 function* listen() {
@@ -263,5 +294,6 @@ export function* rpcToAction(name, actionCreator) {
 export function* Saga() {
   yield takeEvery(ActionTypes.JOIN, join);
   yield takeEvery(ActionTypes.CONNECT, connect);
+  yield takeEvery(ActionTypes.CONNECT_FAILURE, connectFailure);
   yield takeEvery(ActionTypes.FETCH_BUOYS, fetchBuoys);
 }

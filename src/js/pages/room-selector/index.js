@@ -116,7 +116,7 @@ const RoomSelectorPage = ({history}) => {
           type="text"
           placeholder="da best music"
           value={createForm.name}
-          onChange={() => setCreateForm({...createForm, name: e.target.value})}
+          onChange={e => setCreateForm({...createForm, name: e.target.value})}
         />
         <button
           onClick={() => dispatch(Actions.createRoom({
