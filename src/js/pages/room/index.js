@@ -4,6 +4,8 @@ import {useSelector, useDispatch} from 'react-redux';
 import {withRouter, Redirect} from 'react-router';
 import classNames from 'classnames';
 import {useDropzone} from 'react-dropzone';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import * as Icon from '@fortawesome/free-solid-svg-icons'
 
 import {
   Actions as RoomActions,
@@ -156,7 +158,17 @@ const Queues = () => {
             <li key={track.get('_id')}>
               <div className="top">{top}</div>
               {!!bottom && <div className="bottom">{bottom}</div>}
-              <a className="delete" onClick={() => dispatch(LibraryActions.deleteTrack({track}))}>[x]</a>
+              <div className="actions">
+                <a onClick={() => dispatch(LibraryActions.deleteTrack({track}))}>
+                  <FontAwesomeIcon icon={Icon.faAngleUp} />
+                </a>
+                <a onClick={() => dispatch(LibraryActions.deleteTrack({track}))}>
+                  <FontAwesomeIcon icon={Icon.faAngleDown} />
+                </a>
+                <a onClick={() => dispatch(LibraryActions.deleteTrack({track}))}>
+                  <FontAwesomeIcon icon={Icon.faTimes} />
+                </a>
+              </div>
             </li>
           );
         })}

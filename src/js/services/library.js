@@ -5,7 +5,7 @@ import uuid from 'uuid/v1';
 
 import db from 'db';
 import {createAction} from 'utils/redux';
-import {rpcToAction,} from './buoys';
+import {rpcToAction} from './buoys';
 
 const readTags = ({file}) => {
   return new Promise((resolve, reject) => {
@@ -37,6 +37,7 @@ export const ActionTypes = {
   SET_SELECTED_QUEUE: 'services/library/set_selected_queue',
   SET_TRACK: 'services/library/set_track',
   ADD_TO_QUEUE: 'services/library/add_to_queue',
+  CYCLE_SELECTED_QUEUE: 'services/library/cycle_selected_queue',
 
   REQUEST_TRACK: 'services/library/request_track',
 };
@@ -53,6 +54,7 @@ export const Actions = {
   setSelectedQueue: createAction(ActionTypes.SET_SELECTED_QUEUE, 'queue'),
   setTrack: createAction(ActionTypes.SET_TRACK, 'track'),
   addToQueue: createAction(ActionTypes.ADD_TO_QUEUE, 'trackId', 'queueId'),
+  cycleSelectedQueue: createAction(ActionTypes.CYCLE_SELECTED_QUEUE),
   requestTrack: createAction(ActionTypes.REQUEST_TRACK, 'callback'),
 };
 
@@ -97,6 +99,15 @@ const callbacks = [
   {
     actionType: ActionTypes.SET_SELECTED_QUEUE,
     callback: (s, {queue}) => s.merge({selectedQueue: queue}),
+  },
+  {
+    actionType: ActionTypes.CYCLE_SELECTED_QUEUE,
+    callback: (s, {queue}) => {
+      const trackIds = s.getIn(['selectedQueue', 'trackIds']);
+      const first = trackIds.first();
+      const updated = trackIds.shift().push(first);
+      return s.setIn(['selectedQueue', 'trackIds'], updated);
+    },
   },
 ];
 
@@ -234,6 +245,7 @@ function* requestTrack({callback}) {
   const track = currentQueue.getIn(['tracks', 0]);
 
   callback({track: track.deleteAll(['_id', '_rev']).toJS()});
+  yield put(Actions.cycleSelectedQueue());
 }
 
 function* deleteTrack({track}) {
@@ -277,12 +289,18 @@ function* deleteTrack({track}) {
   yield put(Actions.deleteTrackSuccess({trackId: track.get('_id')}));
 }
 
+function* cycleSelectedQueue() {
+  const currentQueue = yield select(Selectors.selectedQueue);
+  yield call(db.put, currentQueue);
+}
+
 export function* Saga() {
   yield takeEvery('init', init);
   yield takeEvery(ActionTypes.ADD_TRACK, addTrack);
   yield takeEvery(ActionTypes.DELETE_TRACK, deleteTrack);
   yield takeEvery(ActionTypes.ADD_TO_QUEUE, addToQueue);
   yield takeEvery(ActionTypes.REQUEST_TRACK, requestTrack);
+  yield takeEvery(ActionTypes.CYCLE_SELECTED_QUEUE, cycleSelectedQueue);
 
   yield* rpcToAction('requestTrack', Actions.requestTrack);
 }

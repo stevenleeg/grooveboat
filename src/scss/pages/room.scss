@@ -241,7 +241,7 @@ $sidebar-width: 300px;
 
   li {
     padding: 10px 15px;
-    cursor: grab;
+    cursor: default;
     position: relative;
 
     &:not(:nth-last-child(1)) {
@@ -258,11 +258,22 @@ $sidebar-width: 300px;
       margin-top: 3px;
     }
 
-    .delete {
+    .actions {
       position: absolute;
       top: 0px;
       right: 0px;
-      padding: 10px 15px;
+      display: flex;
+
+      a {
+        display: block;
+        padding: 5px;
+        font-size: 18px;
+        color: $color-alt-text;
+
+        &:hover {
+          color: $color-blue;
+        }
+      }
     }
   }
 }
