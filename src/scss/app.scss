@@ -167,5 +167,59 @@ a {
   }
 }
 
+.toast {
+  position: fixed;
+  top: 0px;
+  left: 50%;
+  margin-left: -150px;
+  width: 300px;
+  background: $color-white;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, .7);
+  display: flex;
+  align-items: center;
+  animation: slide-in 4s;
+
+  .icon {
+    text-align: center;
+    font-size: 32px;
+    margin-right: 15px;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .title {
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+
+  .message {
+    font-size: 14px;
+  }
+}
+
+@keyframes slide-in {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  5% {
+    transform: translateY(15px);
+  }
+
+  95% {
+    transform: translateY(15px);
+  }
+
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
 @import './pages/room-selector';
 @import './pages/room';
