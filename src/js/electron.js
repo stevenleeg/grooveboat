@@ -65,8 +65,10 @@ const createWindow = () => {
       nodeIntegration: true,
       ...additionals,
     },
-    width: 900,
-    height: 680,
+    width: 840,
+    height: 590,
+    minWidth: 600,
+    minHeight: 590,
   });
 
   window.loadURL('http://localhost:1234');

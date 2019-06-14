@@ -143,10 +143,21 @@ const Queues = () => {
 
       <ul className="queues--tracks">
         {queue && queue.get('tracks').map((track) => {
+          let top = track.get('filename');
+          if (track.get('track')) {
+            top = track;
+          }
+
+          let bottom = 'Suzanna Vega';
+          if (track.get('artist')) {
+            bottom = track.get('artist');
+          }
+
           return (
             <li key={track.get('_id')}>
-              {track.get('filename')}
-              <a onClick={() => dispatch(LibraryActions.deleteTrack({track}))}>[x]</a>
+              <div className="top">{top}</div>
+              {!!bottom && <div className="bottom">{bottom}</div>}
+              <a className="delete" onClick={() => dispatch(LibraryActions.deleteTrack({track}))}>[x]</a>
             </li>
           );
         })}
@@ -220,16 +231,16 @@ const RoomPage = ({match}) => {
   }
 
   return (
-    <Fragment>
+    <div className="room--container">
       <NowPlaying currentTrack={currentTrack} />
-      <div className="room--container">
-        <div className="room--content">
+      <div className="room--content">
+        <div className="room--main">
           <Stage djs={djs} activeDj={room.get('activeDj')} />
           <Audience peers={audience} />
         </div>
         <Sidebar />
       </div>
-    </Fragment>
+    </div>
   );
 };
 

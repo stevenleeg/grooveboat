@@ -4,6 +4,7 @@ $sidebar-width: 300px;
   display: flex;
   height: 100vh;
   width: 100vw;
+  flex-direction: column;
 }
 
 .room--sidebar {
@@ -32,28 +33,20 @@ $sidebar-width: 300px;
   }
 }
 
-.sidebar--queues {
-  select {
-    margin-top: 0px;
-    color: rgba(0,0,0,0);
-    text-shadow: 0 0 0 $color-dark-gray;
-
-    &:focus {
-      outline: none;
-    }
-  }
-}
-
 .room--content {
-  width: calc(100% - #{$sidebar-width});
+  width: 100%;
   display: flex;
-  flex-direction: column;
+  flex: 1;
 }
 
 .room--audience {
   flex: 1;
   padding: 25px;
   display: flex;
+}
+
+.room--main {
+  flex: 1;
 }
 
 .peer {
@@ -203,6 +196,22 @@ $sidebar-width: 300px;
   }
 }
 
+.sidebar--queues {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  select {
+    margin-top: 0px;
+    color: rgba(0,0,0,0);
+    text-shadow: 0 0 0 $color-dark-gray;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
 .queues--dropzone {
   border: 2px dashed $color-border;
   padding: 25px;
@@ -213,12 +222,31 @@ $sidebar-width: 300px;
 }
 
 .queues--tracks {
+  display: block;
+  flex: 1;
   list-style-type: none;
   margin: 0px;
   padding: 0px;
 
   li {
-    padding: 15px;
+    padding: 10px 15px;
     cursor: pointer;
+    position: relative;
+
+    .top {
+      font-size: 18px;
+    }
+
+    .bottom {
+      font-size: 14px;
+      color: $color-alt-text;
+    }
+
+    .delete {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      padding: 10px 15px;
+    }
   }
 }
