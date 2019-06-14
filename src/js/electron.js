@@ -36,6 +36,10 @@ const onStart = (err) => {
 
   global.ipfs = ipfsd.api;
 
+  ipfsd.api.id((err, id) => {
+    console.log(err, id);
+  });
+
   createWindow();
 };
 

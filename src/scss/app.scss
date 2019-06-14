@@ -6,7 +6,7 @@ $color-blue: #00B4FF;
 $color-white: #FFF;
 $color-red: #ee1111;
 $color-green: green;
-$color-alt-text: darken($color-light-gray, 20%);
+$color-alt-text: darken($color-light-gray, 30%);
 
 $header-height: 50px;
 
@@ -171,8 +171,8 @@ a {
   position: fixed;
   top: 0px;
   left: 50%;
-  margin-left: -150px;
-  width: 300px;
+  margin-left: -175px;
+  width: 350px;
   background: $color-white;
   padding: 15px;
   border-radius: 5px;

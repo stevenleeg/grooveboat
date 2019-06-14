@@ -202,7 +202,7 @@ $sidebar-width: 300px;
   flex: 1;
 
   select {
-    margin-top: 0px;
+    margin: 0px;
     color: rgba(0,0,0,0);
     text-shadow: 0 0 0 $color-dark-gray;
 
@@ -237,8 +237,12 @@ $sidebar-width: 300px;
 
   li {
     padding: 10px 15px;
-    cursor: pointer;
+    cursor: grab;
     position: relative;
+
+    &:not(:nth-last-child(1)) {
+      border-bottom: 1px dotted $color-border;
+    }
 
     .top {
       font-size: 18px;
@@ -247,6 +251,7 @@ $sidebar-width: 300px;
     .bottom {
       font-size: 14px;
       color: $color-alt-text;
+      margin-top: 3px;
     }
 
     .delete {

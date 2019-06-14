@@ -145,7 +145,7 @@ const Queues = () => {
         {queue && queue.get('tracks').map((track) => {
           let top = track.get('filename');
           if (track.get('track')) {
-            top = track;
+            top = track.get('track');
           }
 
           let bottom = '';

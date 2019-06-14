@@ -63,15 +63,19 @@ function* notify() {
   yield put(Actions.clearNotification());
 }
 
-function* init() {
-  yield delay(1000);
+function* notifyFailure({message}) {
+  if (!message) {
+    return;
+  }
+
   yield put(Actions.notify({
-    title: 'Yeet!',
-    message: 'Hello world',
+    title: 'Yikes!',
+    icon: '🚨',
+    message,
   }));
 }
 
 export function* Saga() {
   yield takeEvery(ActionTypes.NOTIFY, notify);
-  yield takeEvery('init', init);
+  yield takeEvery(({type}) => type.indexOf('failure') !== -1, notifyFailure);
 }
