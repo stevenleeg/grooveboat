@@ -38,22 +38,46 @@ const onInit = (err) => {
   ipfsd.start(onStart);
 };
 
-const onStart = (err) => {
+const onStart = async (err) => {
   if (err) throw err;
 
   global.ipfs = ipfsd.api;
 
-  ipfsd.api.id((err, id) => {
-    if (err && retried) {
-      // Yikes, this is bad
-      console.log('could not spawn ipfs after reinitializing repo. aborting!');
-      process.exit(1);
-    } else if (err) {
-      // Corrupt repo, let's remove it and try again
-      retried = true;
+  let addresses;
+  try {
+    addresses = await ipfsd.api.config.get('Addresses.Swarm');
+  } catch (e) {
+    if (!retried && e.errno === 'ECONNREFUSED') {
       fs.remove(repoPath, () => spawnIPFS());
+      retried = true;
+      return;
+    } else if (e.errno === 'ECONNREFUSED') {
+      console.log('could not salvage ipfs daemon. aborting!');
+    } else {
+      console.log('ipfs error: ', e);
     }
-  });
+
+    process.exit(1);
+  }
+
+  console.log('current swarm address is', address);
+  if (addresses.indexOf('/ip4/0.0.0.0/tcp/5921') !== -1) {
+    createWindow();
+    return;
+  }
+
+  // Open up the gateway to the world
+  await ipfsd.api.config.set('Addresses.Swarm', ['/ip4/0.0.0.0/tcp/5921']);
+
+  // Restart the daemon
+  ipfsd.stop(() => ipfsd.start(() => createWindow));
+};
+
+const onGatewayAddressSet = (err) => {
+  if (err) {
+    console.log(err);
+    process.exit();
+  }
 
   createWindow();
 };
