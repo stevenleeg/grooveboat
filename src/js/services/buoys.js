@@ -78,6 +78,8 @@ export const Actions = {
 
   receive: createAction(ActionTypes.RECEIVE, 'payload', 'callback'),
 
+  disconnected: createAction(ActionTypes.DISCONNECTED),
+
   fetchBuoys: createAction(ActionTypes.FETCH_BUOYS),
   fetchBuoysSuccess: createAction(ActionTypes.FETCH_BUOYS_SUCCESS, 'buoys'),
 };
@@ -258,6 +260,7 @@ function* listen() {
     }
   } finally {
     console.log('Connection closed');
+    yield put(Actions.disconnected());
   }
 }
 
