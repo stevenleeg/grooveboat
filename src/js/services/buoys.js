@@ -179,8 +179,8 @@ function* join({inviteCode}) {
     params: {jwt: inviteCode},
   });
 
-  if (!resp.token) {
-    yield put(Actions.joinFailure());
+  if (resp.error) {
+    yield put(Actions.joinFailure({message: resp.message}));
     return;
   }
 
@@ -211,6 +211,10 @@ function* join({inviteCode}) {
 
   yield call(db.put, updatedStore);
   yield fork(listen);
+
+  // Connect our IPFS node to the server's
+  yield call(window.ipfs.swarm.connect, resp.ipfsGateway);
+
   yield put(Actions.joinSuccess({
     token: resp.token,
     buoy: Immutable.fromJS(buoy),
@@ -237,6 +241,10 @@ function* connect({buoy}) {
   }
 
   yield fork(listen);
+
+  // Connect our IPFS node to the server's
+  yield call(window.ipfs.swarm.connect, resp.ipfsGateway);
+
   yield put(Actions.connectSuccess({buoy, peerId: resp.peerId}));
 }
 

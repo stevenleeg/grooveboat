@@ -4,6 +4,7 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs-extra');
 const uuid = require('uuid/v1');
+const {promisify} = require('util');
 
 ////
 // Boot up an IPFS node
@@ -13,81 +14,49 @@ let ipfsd;
 let retried = false;
 const repoPath = path.join(os.homedir(), '.grooveboat');
 
-const spawnIPFS = () => {
-  IPFSFactory
-    .create()
-    .spawn({repoPath, disposable: false}, onSpawn);
-};
+const bootIPFS = async () => {
+  const factory = IPFSFactory.create()
 
-const onSpawn = (err, instance) => {
-  if (err) throw err;
+  const callSpawn = promisify(factory.spawn.bind(factory));
+  const ipfsd = await callSpawn({repoPath, disposable: false});
+  global.ipfsd = ipfsd;
 
-  console.log('ipfs daemon spawned...')
-  ipfsd = instance;
+  // Promisify some things
+  const callInit = promisify(ipfsd.init.bind(ipfsd));
+  const callStart = promisify(ipfsd.start.bind(ipfsd));
+  const callStop = promisify(ipfsd.stop.bind(ipfsd));
 
-  if (fs.existsSync(repoPath)) {
-    ipfsd.start(onStart);
-  } else {
-    ipfsd.init({directory: repoPath}, onInit);
+  // Init and boot the IPFS node
+  if (!fs.existsSync(repoPath)) {
+    await callInit();
   }
-};
-
-const onInit = (err) => {
-  if (err) throw err;
-  console.log('ipfs repo initialized...');
-  ipfsd.start(onStart);
-};
-
-const onStart = async (err) => {
-  if (err) throw err;
+  await callStart();
 
   global.ipfs = ipfsd.api;
 
+  // Make sure our node is actually runnung
   let addresses;
   try {
-    addresses = await ipfsd.api.config.get('Addresses.Swarm');
+    addresses = await ipfsd.api.id();
   } catch (e) {
-    if (!retried && e.errno === 'ECONNREFUSED') {
-      fs.remove(repoPath, () => spawnIPFS());
-      retried = true;
-      return;
-    } else if (e.errno === 'ECONNREFUSED') {
-      console.log('could not salvage ipfs daemon. aborting!');
-    } else {
-      console.log('ipfs error: ', e);
+    if (e.errno !== 'ECONNREFUSED') {
+      console.log('ipfs error:', e);
+      process.exit(1);
     }
 
-    process.exit(1);
-  }
-
-  console.log('current swarm address is', address);
-  if (addresses.indexOf('/ip4/0.0.0.0/tcp/5921') !== -1) {
-    createWindow();
+    // Let's try reiniting our ipfs repository
+    await promisify(fs.remove)(repoPath);
+    bootIPFS();
     return;
   }
 
-  // Open up the gateway to the world
-  await ipfsd.api.config.set('Addresses.Swarm', ['/ip4/0.0.0.0/tcp/5921']);
-
-  // Restart the daemon
-  ipfsd.stop(() => ipfsd.start(() => createWindow));
+  console.log('ipfs node is running');
 };
 
-const onGatewayAddressSet = (err) => {
-  if (err) {
-    console.log(err);
-    process.exit();
-  }
-
-  createWindow();
-};
-
-const onQuit = () => {
-  console.log('shutting down ipfs node...');
-  ipfsd.stop(() => {
-    console.log('done. bye bye!');
-    app.quit();
-  });
+const onQuit = async () => {
+  const callStop = promisify(global.ipfsd.stop.bind(global.ipfsd));
+  await callStop();
+  console.log('ipfsd stopped!');
 };
 
 ////
@@ -124,7 +93,7 @@ const createWindow = () => {
   windows.push(window);
 };
 
-app.on('ready', () => {
+app.on('ready', async () => {
   const template = [
     ...(process.platform === 'darwin' ? [{
       label: app.getName(),
@@ -150,7 +119,9 @@ app.on('ready', () => {
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
-  spawnIPFS();
+
+  await bootIPFS();
+  createWindow();
 });
 
 app.on('window-all-closed', onQuit);
