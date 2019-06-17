@@ -2,7 +2,7 @@ const {app, BrowserWindow, Menu} = require('electron');
 const IPFSFactory = require('ipfsd-ctl');
 const path = require('path');
 const os = require('os');
-const fs = require('fs');
+const fs = require('fs-extra');
 const uuid = require('uuid/v1');
 
 ////
@@ -10,7 +10,14 @@ const uuid = require('uuid/v1');
 //
 
 let ipfsd;
+let retried = false;
 const repoPath = path.join(os.homedir(), '.grooveboat');
+
+const spawnIPFS = () => {
+  IPFSFactory
+    .create()
+    .spawn({repoPath, disposable: false}, onSpawn);
+};
 
 const onSpawn = (err, instance) => {
   if (err) throw err;
@@ -37,7 +44,15 @@ const onStart = (err) => {
   global.ipfs = ipfsd.api;
 
   ipfsd.api.id((err, id) => {
-    console.log(err, id);
+    if (err && retried) {
+      // Yikes, this is bad
+      console.log('could not spawn ipfs after reinitializing repo. aborting!');
+      process.exit(1);
+    } else if (err) {
+      // Corrupt repo, let's remove it and try again
+      retried = true;
+      fs.remove(repoPath, () => spawnIPFS());
+    }
   });
 
   createWindow();
@@ -111,10 +126,7 @@ app.on('ready', () => {
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
-
-  IPFSFactory
-    .create()
-    .spawn({repoPath, disposable: false}, onSpawn);
+  spawnIPFS();
 });
 
 app.on('window-all-closed', onQuit);
