@@ -82,7 +82,6 @@ const createWindow = () => {
     }
   });
 
-  window.toggleDevTools();
   windows.push(window);
 };
 

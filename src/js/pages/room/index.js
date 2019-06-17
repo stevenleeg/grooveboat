@@ -126,9 +126,6 @@ const Audience = ({peers}) => {
   );
 };
 
-const MODE_CHAT = 'chat';
-const MODE_QUEUE = 'queue';
-
 const Queues = () => {
   ////
   // Hooks
@@ -200,8 +197,65 @@ const Queues = () => {
   );
 };
 
+const Chat = () => {
+  ////
+  // Hooks
+  //
+  const dispatch = useDispatch();
+  const newMessage = useSelector(RoomSelectors.newMessage);
+  const messages = useSelector(RoomSelectors.chatMessagesWithPeers);
+
+  ////
+  // Action callbacks
+  //
+  const onChange = (e) => {
+    if (e.key === 'Enter') {
+      return;
+    }
+
+    dispatch(RoomActions.setNewChatMessage({message: e.target.value}));
+  };
+
+  const onKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      dispatch(RoomActions.sendChat());
+      e.preventDefault();
+    }
+  };
+
+  ////
+  // Render
+  //
+  return (
+    <div className="sidebar--chat">
+      <div className="chat--msgs">
+        {messages.map((msg) => {
+          return (
+            <div className="chat--msg" key={msg.get('id')}>
+              <div className="sender-name">😀 {msg.getIn(['peer', 'id'])}</div>
+              <div className="message">{msg.get('message')}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="chat--compose">
+        <textarea
+          placeholder="type it and hit enter"
+          onChange={onChange}
+          value={newMessage}
+          onKeyPress={onKeyPress}
+        />
+      </div>
+    </div>
+  );
+};
+
+const MODE_CHAT = 'chat';
+const MODE_QUEUE = 'queue';
+
 const Sidebar = () => {
-  const [mode, setMode] = useState(MODE_QUEUE);
+  const [mode, setMode] = useState(MODE_CHAT);
 
   return (
     <div className="room--sidebar">
@@ -221,6 +275,9 @@ const Sidebar = () => {
       </div>
       {mode === MODE_QUEUE && (
         <Queues />
+      )}
+      {mode === MODE_CHAT && (
+        <Chat />
       )}
     </div>
   );

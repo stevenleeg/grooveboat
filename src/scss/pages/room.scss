@@ -286,3 +286,51 @@ $sidebar-width: 300px;
     margin-right: 10px;
   }
 }
+
+.sidebar--chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.chat--msgs {
+  flex: 1;
+}
+
+.chat--msg {
+  display: flex;
+  padding: 3px 15px 0px 15px;
+  flex-direction: column;
+
+  &:nth-child(1) {
+    padding-top: 5px;
+  }
+
+  .sender-name {
+    font-size: 16px;
+    border-bottom: 1px solid $color-border;
+    padding: 3px 0px;
+    margin-bottom: 5px;
+
+    max-width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .message {
+    font-size: 14px;
+    line-height: 1.3em;
+  }
+}
+
+.chat--compose {
+  textarea {
+    background-color: $color-white;
+    border-bottom: 0px;
+    margin: 0px;
+    font-size: 16px;
+    height: 4em;
+    border-top: 1px solid $color-border;
+  }
+}

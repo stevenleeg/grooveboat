@@ -39,6 +39,13 @@ export const ActionTypes = {
 
   SET_DJS: 'services/room/set_djs',
   SET_ACTIVE_DJ: 'services/room/set_active_dj',
+
+  SET_NEW_CHAT_MESSAGE: 'services/rooms/set_new_chat_message',
+  SEND_CHAT: 'services/room/send_chat',
+  SEND_CHAT_SUCCESS: 'services/room/send_chat_success',
+  SEND_CHAT_FAILURE: 'services/room/send_chat_failure',
+
+  NEW_CHAT_MESSAGE: 'services/rooms/new_chat_message',
 };
 
 export const Actions = {
@@ -61,6 +68,12 @@ export const Actions = {
   stepDownSuccess: createAction(ActionTypes.STEP_DOWN_SUCCESS),
   stepDownFailure: createAction(ActionTypes.STEP_DOWN_FAILURE),
 
+  setNewChatMessage: createAction(ActionTypes.SET_NEW_CHAT_MESSAGE, 'message'),
+  sendChat: createAction(ActionTypes.SEND_CHAT),
+  sendChatSuccess: createAction(ActionTypes.SEND_CHAT_SUCCESS),
+  sendChatFailure: createAction(ActionTypes.SEND_CHAT_FAILURE),
+  newChatMessage: createAction(ActionTypes.NEW_CHAT_MESSAGE),
+
   setPeers: createAction(ActionTypes.SET_PEERS, 'peers'),
   setDjs: createAction(ActionTypes.SET_DJS, 'djs'),
   setActiveDj: createAction(ActionTypes.SET_ACTIVE_DJ, 'djId'),
@@ -72,6 +85,11 @@ export const Actions = {
 const initialState = Immutable.fromJS({
   loading: false,
   rooms: [],
+  chat: {
+    messages: [],
+    sendingMessage: false,
+    newMessage: '',
+  },
   currentRoom: null,
 });
 
@@ -103,7 +121,36 @@ const callbacks = [
   {
     actionType: ActionTypes.SET_ACTIVE_DJ,
     callback: (s, {djId}) => s.setIn(['currentRoom', 'activeDj'], djId),
-  }
+  },
+  {
+    actionType: ActionTypes.SET_NEW_CHAT_MESSAGE,
+    callback: (s, {message}) => s.setIn(['chat', 'newMessage'], message),
+  },
+  {
+    actionType: ActionTypes.SEND_CHAT,
+    callback: s => s.setIn(['chat', 'sendingMessage'], true),
+  },
+  {
+    actionType: ActionTypes.SEND_CHAT_FAILURE,
+    callback: s => s.setIn(['chat', 'sendingMessage'], false),
+  },
+  {
+    actionType: ActionTypes.SEND_CHAT_SUCCESS,
+    callback: s => {
+      return s
+        .setIn(['chat', 'newMessage'], '')
+        .setIn(['chat', 'sendingMessage'], false);
+    },
+  },
+  {
+    actionType: ActionTypes.NEW_CHAT_MESSAGE,
+    callback: (s, {...message}) => {
+      const updatedMsgs = s.getIn(['chat', 'messages'])
+        .push(Immutable.fromJS(message));
+
+      return s.setIn(['chat', 'messages'], updatedMsgs);
+    },
+  },
 ];
 
 export const Reducers = {initialState, callbacks};
@@ -114,6 +161,7 @@ export const Reducers = {initialState, callbacks};
 const store = s => s.getIn(['services', 'rooms']);
 const rooms = s => store(s).get('rooms');
 const currentRoom = s => store(s).get('currentRoom');
+
 const peerMap = (s) => {
   const room = currentRoom(s);
   if (!room) {
@@ -124,6 +172,7 @@ const peerMap = (s) => {
     return map.set(peer.get('id'), peer);
   }, new Immutable.Map());
 };
+
 const djs = (s) => {
   const room = currentRoom(s);
   if (!room) {
@@ -135,6 +184,7 @@ const djs = (s) => {
     return peers.get(peerId);
   });
 };
+
 const audience = (s) => {
   const room = currentRoom(s);
   if (!room) {
@@ -145,6 +195,20 @@ const audience = (s) => {
   return currentRoom(s).get('peers').filter(p => !djs.has(p.get('id')));
 };
 
+const newMessage = (s) => {
+  return store(s).getIn(['chat', 'newMessage']);
+};
+
+const chatMessagesWithPeers = (s) => {
+  const peers = peerMap(s);
+
+  return store(s).getIn(['chat', 'messages']).map((msg) => {
+    return msg
+      .set('peer', peers.get(msg.get('fromPeerId')))
+      .remove('fromPeerId');
+  });
+};
+
 export const Selectors = {
   store,
   rooms,
@@ -152,6 +216,8 @@ export const Selectors = {
   peerMap,
   djs,
   audience,
+  newMessage,
+  chatMessagesWithPeers,
 };
 
 ////
@@ -224,14 +290,32 @@ function* stepDown() {
   yield put(Actions.stepDownSuccess());
 }
 
+function* sendChat() {
+  const message = yield select(newMessage);
+
+  const resp = yield call(send, {
+    name: 'sendChat',
+    params: {message},
+  });
+
+  if (resp.error) {
+    yield put(Actions.sendChatFailure({message: resp.message}));
+    return;
+  }
+
+  yield put(Actions.sendChatSuccess());
+}
+
 export function* Saga() {
   yield takeEvery(ActionTypes.FETCH_ALL, fetchAll);
   yield takeEvery(ActionTypes.CREATE_ROOM, createRoom);
   yield takeEvery(ActionTypes.JOIN_ROOM, joinRoom);
   yield takeEvery(ActionTypes.BECOME_DJ, becomeDj);
   yield takeEvery(ActionTypes.STEP_DOWN, stepDown);
+  yield takeEvery(ActionTypes.SEND_CHAT, sendChat);
 
   yield* rpcToAction('setPeers', Actions.setPeers);
   yield* rpcToAction('setDjs', Actions.setDjs);
   yield* rpcToAction('setActiveDj', Actions.setActiveDj);
+  yield* rpcToAction('newChatMsg', Actions.newChatMessage);
 }
