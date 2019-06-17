@@ -25,7 +25,15 @@ import {
 import {LoadingState, ErrorState} from 'components/bigstates';
 import {Actions} from './data';
 
-const NowPlaying = ({currentTrack}) => {
+const NowPlaying = () => {
+  ////
+  // Hooks
+  //
+  const currentTrack = useSelector(JukeboxSelectors.currentTrack);
+
+  ////
+  // Rendering
+  //
   let song = 'Awaiting track...';
   if (currentTrack && currentTrack.get('artist') && currentTrack.get('track')) {
     song = `${currentTrack.get('artist')} - ${currentTrack.get('track')}`;
@@ -45,15 +53,19 @@ const NowPlaying = ({currentTrack}) => {
   );
 };
 
-const Stage = ({djs, activeDj, currentTrack}) => {
+const Stage = () => {
   ////
   // Hooks
   //
   const dispatch = useDispatch()
+  const room = useSelector(RoomSelectors.currentRoom);
+  const djs = useSelector(RoomSelectors.djs);
 
   ////
   // Render
   //
+  const activeDjId = room.get('activeDj');
+
   return (
     <div className="room--stage">
       <div className="stage--djs">
@@ -84,7 +96,7 @@ const Stage = ({djs, activeDj, currentTrack}) => {
             <Peer
               key={peer.get('id')}
               peer={peer}
-              className={classNames({active: peer.get('id') === activeDj})}
+              className={classNames({active: peer.get('id') === activeDjId})}
             >
             </Peer>
           );
@@ -214,6 +226,39 @@ const Sidebar = () => {
   );
 };
 
+const DJBar = () => {
+  ////
+  // Hooks
+  //
+  const dispatch = useDispatch();
+  const room = useSelector(RoomSelectors.currentRoom);
+  const activeDjId = room.get('activeDj');
+  const peerId = useSelector(BuoySelectors.peerId);
+
+  ////
+  // Rendering
+  //
+  if (!activeDjId || activeDjId !== peerId) {
+    return false;
+  }
+
+  return (
+    <div className="dj-bar">
+      <button
+        className="plain"
+        onClick={() => dispatch(RoomActions.stepDown())}
+      >
+        step down
+      </button>
+      <button
+        className="plain"
+      >
+        skip track
+      </button>
+    </div>
+  );
+};
+
 const RoomPage = ({match}) => {
   ////
   // Hooks
@@ -223,10 +268,8 @@ const RoomPage = ({match}) => {
   const dispatch = useDispatch();
   const [error, setError] = useState(null);
 
-  const room = useSelector(RoomSelectors.currentRoom);
-  const djs = useSelector(RoomSelectors.djs);
   const audience = useSelector(RoomSelectors.audience);
-  const currentTrack = useSelector(JukeboxSelectors.currentTrack);
+  const room = useSelector(RoomSelectors.currentRoom);
 
   useEffect(() => {
     dispatch(Actions.init({
@@ -249,10 +292,11 @@ const RoomPage = ({match}) => {
 
   return (
     <div className="room--container">
-      <NowPlaying currentTrack={currentTrack} />
+      <NowPlaying />
       <div className="room--content">
         <div className="room--main">
-          <Stage djs={djs} activeDj={room.get('activeDj')} />
+          <DJBar />
+          <Stage />
           <Audience peers={audience} />
         </div>
         <Sidebar />

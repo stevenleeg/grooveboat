@@ -33,6 +33,10 @@ export const ActionTypes = {
   BECOME_DJ_SUCCESS: 'services/rooms/become_dj_success',
   BECOME_DJ_FAILURE: 'services/rooms/become_dj_failure',
 
+  STEP_DOWN: 'services/rooms/step_down',
+  STEP_DOWN_SUCCESS: 'services/rooms/step_down_success',
+  STEP_DOWN_FAILURE: 'services/rooms/step_down_failure',
+
   SET_DJS: 'services/room/set_djs',
   SET_ACTIVE_DJ: 'services/room/set_active_dj',
 };
@@ -52,6 +56,10 @@ export const Actions = {
   becomeDj: createAction(ActionTypes.BECOME_DJ),
   becomeDjSuccess: createAction(ActionTypes.BECOME_DJ_SUCCESS),
   becomeDjFailure: createAction(ActionTypes.BECOME_DJ_FAILURE, 'message'),
+
+  stepDown: createAction(ActionTypes.STEP_DOWN),
+  stepDownSuccess: createAction(ActionTypes.STEP_DOWN_SUCCESS),
+  stepDownFailure: createAction(ActionTypes.STEP_DOWN_FAILURE),
 
   setPeers: createAction(ActionTypes.SET_PEERS, 'peers'),
   setDjs: createAction(ActionTypes.SET_DJS, 'djs'),
@@ -205,11 +213,23 @@ function* becomeDj() {
   yield put(Actions.becomeDjSuccess());
 }
 
+function* stepDown() {
+  const resp = yield call(send, {name: 'stepDown'});
+
+  if (resp.error) {
+    yield put(Actions.stepDownFailure({message: resp.message}));
+    return;
+  }
+
+  yield put(Actions.stepDownSuccess());
+}
+
 export function* Saga() {
   yield takeEvery(ActionTypes.FETCH_ALL, fetchAll);
   yield takeEvery(ActionTypes.CREATE_ROOM, createRoom);
   yield takeEvery(ActionTypes.JOIN_ROOM, joinRoom);
   yield takeEvery(ActionTypes.BECOME_DJ, becomeDj);
+  yield takeEvery(ActionTypes.STEP_DOWN, stepDown);
 
   yield* rpcToAction('setPeers', Actions.setPeers);
   yield* rpcToAction('setDjs', Actions.setDjs);

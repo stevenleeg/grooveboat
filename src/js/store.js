@@ -10,7 +10,18 @@ import rootSaga from './root-saga';
 const sagaMiddleware = createSagaMiddleware();
 const logger = createLogger({
   collapsed: true,
+  diff: true,
   stateTransformer: s => s.toJS(),
+  actionTransformer: (action) => {
+    return Object.keys(action).reduce((obj, key) => {
+      const val = action[key];
+      if (Immutable.isImmutable(val)) {
+        return {...obj, [key]: val.toJS()};
+      }
+
+      return {...obj, [key]: val};
+    }, {});
+  },
 });
 
 const middleware = [

@@ -91,6 +91,7 @@ const initialState = Immutable.fromJS({
   connecting: false,
   connectedBuoy: null,
   buoys: [],
+  peerId: null,
 });
 
 const callbacks = [
@@ -100,7 +101,8 @@ const callbacks = [
   },
   {
     actionType: ActionTypes.JOIN_SUCCESS,
-    callback: (s, {buoy}) => s.merge({
+    callback: (s, {buoy, peerId}) => s.merge({
+      peerId,
       connectedBuoy: buoy,
       buoys: s.get('buoys').push(buoy),
       connecting: false,
@@ -117,7 +119,8 @@ const callbacks = [
   },
   {
     actionType: ActionTypes.CONNECT_SUCCESS,
-    callback: (s, {buoy}) => s.merge({
+    callback: (s, {buoy, peerId}) => s.merge({
+      peerId,
       connectedBuoy: buoy,
       connecting: false,
     }),
@@ -161,6 +164,7 @@ export const Selectors = {
   buoys: s => s.getIn(['services', 'buoys', 'buoys']),
   connectedBuoy: s => s.getIn(['services', 'buoys', 'connectedBuoy']),
   isConnecting: s => s.getIn(['services', 'buoys', 'connecting']),
+  peerId: s => s.getIn(['services', 'buoys', 'peerId']),
 };
 
 ////
@@ -207,7 +211,11 @@ function* join({inviteCode}) {
 
   yield call(db.put, updatedStore);
   yield fork(listen);
-  yield put(Actions.joinSuccess({token: resp.token, buoy: Immutable.fromJS(buoy)}));
+  yield put(Actions.joinSuccess({
+    token: resp.token,
+    buoy: Immutable.fromJS(buoy),
+    peerId: resp.peerId,
+  }));
 };
 
 function* connect({buoy}) {
@@ -229,7 +237,7 @@ function* connect({buoy}) {
   }
 
   yield fork(listen);
-  yield put(Actions.connectSuccess({buoy}));
+  yield put(Actions.connectSuccess({buoy, peerId: resp.peerId}));
 }
 
 function* connectFailure({buoy}) {

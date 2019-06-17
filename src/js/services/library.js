@@ -134,6 +134,12 @@ const callbacks = [
       return s.setIn(['selectedQueue', 'trackIds'], updated);
     },
   },
+  {
+    actionType: ActionTypes.CYCLE_SELECTED_QUEUE_SUCCESS,
+    callback: (s, {queue}) => {
+      return s.merge({selectedQueue: queue});
+    },
+  },
 ];
 
 export const Reducers = {initialState, callbacks};

@@ -72,11 +72,24 @@ button {
   padding: 10px 15px;
   color: $color-white;
   margin: 5px 0px;
+  transition: 150ms;
 
   &:disabled {
     background-color: $color-light-gray;
     color: $color-dark-gray;
     cursor: not-allowed;
+  }
+
+  &.plain {
+    background-color: transparent;
+    color: $color-dark-gray;
+    padding: 0px;
+    margin: 0px;
+    cursor: pointer;
+
+    &:hover {
+      color: $color-blue;
+    }
   }
 }
 
