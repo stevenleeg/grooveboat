@@ -8,7 +8,11 @@ import {send, rpcToAction} from './buoys';
 ////
 // Helpers
 //
-const player = document.getElementById('player');
+let player = new Audio();
+window.player = player;
+player.addEventListener('error', (e) => {
+  console.log(e);
+});
 
 const playerChannel = () => {
   return eventChannel((emit) => {
@@ -22,36 +26,6 @@ const playerChannel = () => {
     };
   });
 };
-
-const fetchTorrent = (id) => {
-  return new Promise((resolve, reject) => {
-    // Do we already have this torrent?
-    let torrent = window.webtorrent.get(id);
-    if (torrent) {
-      resolve(torrent);
-      return;
-    }
-
-    // Nope, let's start downloading it
-    torrent = window.webtorrent.add(id);
-    torrent.on('ready', () => {
-      resolve(torrent);
-    });
-
-    torrent.on('error', (e) => {
-      reject(e);
-    });
-  });
-};
-
-const getBlobURL = (file) => {
-  return new Promise((resolve, reject) => {
-    file.getBlobURL((e, url) => {
-      if (e) return reject(e);
-      return resolve(url);
-    });
-  });
-}
 
 ////
 // Actions
@@ -122,23 +96,9 @@ function* init() {
 }
 
 function* playTrack({track}) {
-  let torrent;
-  try {
-    torrent = yield call(fetchTorrent, track.get('magnetURI'));
-  } catch (e) {
-    yield put(Actions.playTrackFailure({message: e.toString()}));
-    return;
-  }
-
-  const [file] = torrent.files;
-  console.log(file.progress);
-
-  setTimeout(() => {
-    file.renderTo(player, {
-      autoplay: true,
-      controls: false,
-    });
-  }, 500);
+  player.src = track.get('url');
+  player.load();
+  player.play();
 }
 
 function* trackEnded({track}) {

@@ -22,22 +22,6 @@ const readFile = ({file}) => {
   });
 };
 
-const createTorrent = ({filename, blob}) => {
-  return new Promise((resolve, reject) => {
-    const torrent = window.webtorrent.seed(blob, {
-      name: filename,
-    });
-
-    torrent.on('metadata', () => {
-      resolve(torrent);
-    });
-
-    torrent.on('error', (e) => {
-      reject(e);
-    });
-  });
-};
-
 const getBase64 = ({file}) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -326,21 +310,20 @@ function* requestTrack({callback}) {
   const track = currentQueue.getIn(['tracks', 0]);
 
   // Fetch the track data
-  const blob = yield call(db.getAttachment, track.get('_id'), track.get('_attachments').keySeq().first());
-  let torrent;
+  let blob;
+  const attachmentName = track.get('_attachments').keySeq().first();
   try {
-    torrent = yield call(createTorrent, {filename: track.get('filename'), blob});
+    blob = yield call(db.getAttachment, track.get('_id'), attachmentName);
   } catch (e) {
-    callback({error: true, message: 'could not create torrent'});
-    yield put(Actions.requestTrackFailure({
-      message: 'could not create torrent for track. skipping your turn :(',
-    }));
+    yield put(Actions.requestTrackFailure({message: e.message}));
     return;
   }
 
+  const contentType = track.getIn(['_attachments', attachmentName, 'content_type']);
+  console.log(contentType);
   const respTrack = track
     .deleteAll(['_id', '_rev', '_attachments'])
-    .merge({magnetURI: torrent.magnetURI});
+    .merge({data: blob, contentType});
 
   callback({track: respTrack.toJS()});
   yield put(Actions.cycleSelectedQueue());
@@ -375,8 +358,6 @@ function* deleteTrack({track}) {
     yield put(Actions.deleteTrackFailure({message: e.message}));
     return;
   }
-
-  // TODO stop seeding webtorrent
 
   yield put(Actions.deleteTrackSuccess({trackId: track.get('_id')}));
 }

@@ -54,7 +54,6 @@
     "remote": "^0.2.6",
     "services": "^0.0.3",
     "socket.io-client": "^2.2.0",
-    "uuid": "^3.3.2",
-    "webtorrent": "^0.103.2"
+    "uuid": "^3.3.2"
   }
 }
