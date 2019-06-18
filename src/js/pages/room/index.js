@@ -255,7 +255,7 @@ const MODE_CHAT = 'chat';
 const MODE_QUEUE = 'queue';
 
 const Sidebar = () => {
-  const [mode, setMode] = useState(MODE_CHAT);
+  const [mode, setMode] = useState(MODE_QUEUE);
 
   return (
     <div className="room--sidebar">

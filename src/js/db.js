@@ -3,7 +3,7 @@ import PouchDB from 'pouchdb-browser';
 
 const db = new PouchDB('grooveboat');
 
-const get = id => db.get(id).then((result) => {
+const get = (id, options = {}) => db.get(id, options).then((result) => {
   return Immutable.fromJS(result);
 });
 

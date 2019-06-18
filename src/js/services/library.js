@@ -22,6 +22,37 @@ const readFile = ({file}) => {
   });
 };
 
+const createTorrent = ({filename, blob}) => {
+  return new Promise((resolve, reject) => {
+    const torrent = window.webtorrent.seed(blob, {
+      name: filename,
+    });
+
+    torrent.on('metadata', () => {
+      resolve(torrent);
+    });
+
+    torrent.on('error', (e) => {
+      reject(e);
+    });
+  });
+};
+
+const getBase64 = ({file}) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.addEventListener('load', () => {
+      resolve(reader.result);
+    });
+    reader.addEventListener('error', (e) => {
+      reject(e);
+    });
+
+    reader.readAsDataURL(file);
+  });
+}
+
 ////
 // Actions
 //
@@ -49,6 +80,7 @@ export const ActionTypes = {
   CYCLE_SELECTED_QUEUE_FAILURE: 'services/library/cycle_selected_queue_failure',
 
   REQUEST_TRACK: 'services/library/request_track',
+  REQUEST_TRACK_FAILURE: 'services/library/request_track_failure',
 };
 
 export const Actions = {
@@ -75,6 +107,7 @@ export const Actions = {
   cycleSelectedQueueFailure: createAction(ActionTypes.CYCLE_SELECTED_QUEUE_FAILURE),
 
   requestTrack: createAction(ActionTypes.REQUEST_TRACK, 'callback'),
+  requestTrackFailure: createAction(ActionTypes.REQUEST_TRACK_FAILURE, 'message'),
 };
 
 ////
@@ -195,7 +228,7 @@ function* init() {
   const queue = yield call(db.get, queues.get('selectedId'));
   yield put(Actions.setSelectedQueue({queue}));
 
-  // Fetch and cache each track in the queue
+  // Fetch each track in the queue and begin seeding
   for (const trackId of queue.get('trackIds').toJS()) {
     const track = yield call(db.get, trackId);
     yield put(Actions.setTrack({track}));
@@ -203,48 +236,55 @@ function* init() {
 }
 
 function* addTrack({file}) {
-  const filename = file.name.split('.').slice(0, -1).join('.');
   let tags = {};
+  const fallbackName = file.name.split('.').slice(0, -1).join('.');
   try {
     const id3 = (yield call(readTags, {file})).tags;
     tags = {
-      filename,
+      filename: file.name,
       artist: (id3.TPE1 ? id3.TPE1.data.trim() : null),
       album: (id3.TALB ? id3.TALB.data.trim() : null),
-      track: (id3.TIT2 ? id3.TIT2.data.trim() : null),
+      track: (id3.TIT2 ? id3.TIT2.data.trim() : fallbackName),
     };
   } catch (e) {
     console.log('could not read tags, falling back to filename'),
     tags = {
-      filename,
+      filename: file.name,
       artist: null,
       album: null,
-      track: null,
+      track: fallbackName,
     };
   }
 
-  // Convert to a buffer
-  // Pin the track onto IPFS
-  let resp;
+  // Put the track into our db
+  let dataString;
   try {
-    resp = yield call(window.ipfs.addFromFs, file.path, {
-      pin: true,
-    });
+    dataString = yield call(getBase64, {file});
   } catch (e) {
     yield put(Actions.addTrackFailure({message: e.toString()}));
     return;
   }
 
-  const {hash} = resp[0];
-
-  // Put the track into our db
   const tmpTrack = Immutable.fromJS({
     ...tags,
     _id: `track/${uuid()}`,
-    ipfsHash: hash,
+    _attachments: {
+      [file.name]: {
+        content_type: file.type,
+        data: dataString.split(',')[1],
+      },
+    },
     createdAt: Date.now(),
   });
-  resp = yield call(db.put, tmpTrack);
+
+  let resp
+  try {
+    resp = yield call(db.put, tmpTrack);
+  } catch (e) {
+    yield put(Actions.addTrackFailure({message: e.message}));
+    return;
+  }
+
   const track = tmpTrack.merge({
     _id: resp.id,
     _rev: resp.rev,
@@ -285,7 +325,24 @@ function* requestTrack({callback}) {
   const currentQueue = yield select(Selectors.selectedQueueWithTracks);
   const track = currentQueue.getIn(['tracks', 0]);
 
-  callback({track: track.deleteAll(['_id', '_rev']).toJS()});
+  // Fetch the track data
+  const blob = yield call(db.getAttachment, track.get('_id'), track.get('_attachments').keySeq().first());
+  let torrent;
+  try {
+    torrent = yield call(createTorrent, {filename: track.get('filename'), blob});
+  } catch (e) {
+    callback({error: true, message: 'could not create torrent'});
+    yield put(Actions.requestTrackFailure({
+      message: 'could not create torrent for track. skipping your turn :(',
+    }));
+    return;
+  }
+
+  const respTrack = track
+    .deleteAll(['_id', '_rev', '_attachments'])
+    .merge({magnetURI: torrent.magnetURI});
+
+  callback({track: respTrack.toJS()});
   yield put(Actions.cycleSelectedQueue());
 }
 
@@ -319,16 +376,7 @@ function* deleteTrack({track}) {
     return;
   }
 
-  // Unpin on IPFS
-  try {
-    yield call(window.ipfs.pin.rm, track.get('ipfsHash'));
-  } catch (e) {
-    if (e.message !== 'not pinned or pinned indirectly') {
-      yield put(Actions.deleteTrackFailure({message: e.toString()}));
-    } else {
-      return;
-    }
-  }
+  // TODO stop seeding webtorrent
 
   yield put(Actions.deleteTrackSuccess({trackId: track.get('_id')}));
 }

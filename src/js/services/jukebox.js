@@ -8,8 +8,7 @@ import {send, rpcToAction} from './buoys';
 ////
 // Helpers
 //
-const player = new Audio();
-window.player = player;
+const player = document.getElementById('player');
 
 const playerChannel = () => {
   return eventChannel((emit) => {
@@ -24,17 +23,49 @@ const playerChannel = () => {
   });
 };
 
+const fetchTorrent = (id) => {
+  return new Promise((resolve, reject) => {
+    // Do we already have this torrent?
+    let torrent = window.webtorrent.get(id);
+    if (torrent) {
+      resolve(torrent);
+      return;
+    }
+
+    // Nope, let's start downloading it
+    torrent = window.webtorrent.add(id);
+    torrent.on('ready', () => {
+      resolve(torrent);
+    });
+
+    torrent.on('error', (e) => {
+      reject(e);
+    });
+  });
+};
+
+const getBlobURL = (file) => {
+  return new Promise((resolve, reject) => {
+    file.getBlobURL((e, url) => {
+      if (e) return reject(e);
+      return resolve(url);
+    });
+  });
+}
+
 ////
 // Actions
 //
 export const ActionTypes = {
   PLAY_TRACK: 'services/jukebox/play_track',
+  PLAY_TRACK_FAILURE: 'services/jukebox/play_track_failure',
   STOP_TRACK: 'services/jukebox/stop_track',
   TRACK_ENDED: 'services/jukebox/track_ended',
 };
 
 export const Actions = {
   playTrack: createAction(ActionTypes.PLAY_TRACK, 'track'),
+  playTrackFailure: createAction(ActionTypes.PLAY_TRACK_FAILURE, 'message'),
   stopTrack: createAction(ActionTypes.STOP_TRACK),
   trackEnded: createAction(ActionTypes.TRACK_ENDED, 'track'),
 };
@@ -91,11 +122,23 @@ function* init() {
 }
 
 function* playTrack({track}) {
-  const file = yield call(window.ipfs.cat, track.get('ipfsHash'));
-  player.src = `data:audio/mp3;base64,${file.toString('base64')}`;
-  player.currentTime = 0;
-  player.load();
-  player.play();
+  let torrent;
+  try {
+    torrent = yield call(fetchTorrent, track.get('magnetURI'));
+  } catch (e) {
+    yield put(Actions.playTrackFailure({message: e.toString()}));
+    return;
+  }
+
+  const [file] = torrent.files;
+  console.log(file.progress);
+
+  setTimeout(() => {
+    file.renderTo(player, {
+      autoplay: true,
+      controls: false,
+    });
+  }, 500);
 }
 
 function* trackEnded({track}) {
