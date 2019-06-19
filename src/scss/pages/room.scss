@@ -1,8 +1,10 @@
 $sidebar-width: 300px;
+$nowplaying-height: 85px;
 
 .room--container {
   display: flex;
   height: 100vh;
+  max-height: 100vh;
   width: 100vw;
   flex-direction: column;
 }
@@ -12,6 +14,7 @@ $sidebar-width: 300px;
   background: $color-white;
   display: flex;
   flex-direction: column;
+  height: calc(100vh - #{$nowplaying-height});
 }
 
 .sidebar--tabs {
@@ -108,6 +111,7 @@ $sidebar-width: 300px;
 .nowplaying {
   @include fancy-font;
   width: 100%;
+  height: $nowplaying-height;
   font-size: 32px;
   background-color: $color-dark-gray;
   color: $color-white;
@@ -325,10 +329,27 @@ $sidebar-width: 300px;
   display: flex;
   flex-direction: column;
   flex: 1;
+  overflow: hidden;
 }
 
 .chat--msgs {
   flex: 1;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat--no-msgs {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+
+  p {
+    font-size: 24px;
+    color: $color-alt-text;
+  }
 }
 
 .chat--msg {
@@ -338,6 +359,10 @@ $sidebar-width: 300px;
 
   &:nth-child(1) {
     padding-top: 5px;
+  }
+
+  &:nth-last-child(1) {
+    padding-bottom: 7px;
   }
 
   .sender-name {
@@ -355,6 +380,7 @@ $sidebar-width: 300px;
   .message {
     font-size: 14px;
     line-height: 1.3em;
+    overflow-wrap: break-word;
   }
 }
 

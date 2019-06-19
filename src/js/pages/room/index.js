@@ -1,4 +1,4 @@
-import React, {useState, useEffect, Fragment} from 'react';
+import React, {useState, useEffect, useRef, Fragment} from 'react';
 import Immutable from 'immutable';
 import {useSelector, useDispatch} from 'react-redux';
 import {withRouter, Redirect} from 'react-router';
@@ -51,7 +51,6 @@ const NowPlaying = () => {
 
   return (
     <div className="nowplaying">
-      <div className="nowplaying--dragbar" />
       <div className="nowplaying--content">
         <div
           className={classNames(['up', {disabled: !currentTrack}])}
@@ -241,6 +240,12 @@ const Chat = () => {
   const dispatch = useDispatch();
   const newMessage = useSelector(RoomSelectors.newMessage);
   const messages = useSelector(RoomSelectors.chatMessagesWithPeers);
+  const msgsContainerEl = useRef(null);
+
+  useEffect(() => {
+    const el = msgsContainerEl.current;
+    el.scrollTop = el.scrollHeight;
+  }, [messages]);
 
   ////
   // Action callbacks
@@ -265,7 +270,7 @@ const Chat = () => {
   //
   return (
     <div className="sidebar--chat">
-      <div className="chat--msgs">
+      <div className="chat--msgs" ref={msgsContainerEl}>
         {messages.map((msg) => {
           return (
             <div className="chat--msg" key={msg.get('id')}>
@@ -274,6 +279,9 @@ const Chat = () => {
             </div>
           );
         })}
+        {messages.count() === 0 && (
+          <div className="chat--no-msgs"><p>nothing yet</p></div>
+        )}
       </div>
 
       <div className="chat--compose">
@@ -292,7 +300,7 @@ const MODE_CHAT = 'chat';
 const MODE_QUEUE = 'queue';
 
 const Sidebar = () => {
-  const [mode, setMode] = useState(MODE_QUEUE);
+  const [mode, setMode] = useState(MODE_CHAT);
 
   return (
     <div className="room--sidebar">
