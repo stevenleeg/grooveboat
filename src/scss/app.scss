@@ -10,6 +10,8 @@ $color-alt-text: darken($color-light-gray, 30%);
 
 $header-height: 50px;
 
+@import 'emoji-mart/css/emoji-mart.css';
+
 @font-face {
   font-family: 'Codystar';
   src: url('../assets/fonts/Codystar-Regular.ttf');

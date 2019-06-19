@@ -5,6 +5,7 @@ import {withRouter, Redirect} from 'react-router';
 import classNames from 'classnames';
 import {useDropzone} from 'react-dropzone';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {Picker} from 'emoji-mart';
 import * as Icon from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -131,8 +132,8 @@ const Peer = ({peer, className, children}) => {
   return (
     <div className={classNames(['peer', className])}>
       {children}
-      <div className="icon">😀</div>
-      <div className="name">{peer.get('id')}</div>
+      <div className="icon">{peer.getIn(['profile', 'emoji']) || '❓'}</div>
+      <div className="name">{peer.getIn(['profile', 'handle']) || peer.get('id')}</div>
     </div>
   );
 };
@@ -272,9 +273,13 @@ const Chat = () => {
     <div className="sidebar--chat">
       <div className="chat--msgs" ref={msgsContainerEl}>
         {messages.map((msg) => {
+          const peer = msg.get('peer');
+          const handle = peer.getIn(['profile', 'handle']) || peer.get('id');
+          const emoji = peer.getIn(['profile', 'emoji']) || '❓';
+
           return (
             <div className="chat--msg" key={msg.get('id')}>
-              <div className="sender-name">😀 {msg.getIn(['peer', 'id'])}</div>
+              <div className="sender-name">{emoji} {handle}</div>
               <div className="message">{msg.get('message')}</div>
             </div>
           );
@@ -361,6 +366,94 @@ const DJBar = () => {
   );
 };
 
+const EditProfileSettings = ({onClose}) => {
+  ////
+  // Hooks
+  //
+  const dispatch = useDispatch();
+  const [showEmojiMart, setShowEmojiMart] = useState(false);
+  const [form, setForm] = useState({
+    handle: '',
+    emoji: '😆',
+  });
+
+  ////
+  // Action callbacks
+  //
+  const save = () => {
+    dispatch(RoomActions.setProfile({profile: form}));
+    onClose();
+  };
+
+  ////
+  // Render
+  //
+  return (
+    <div className="settings--edit-profile">
+      <h1>edit profile</h1>
+      <label>avatar</label>
+      <div className="emoji">
+        <div className="frame" onClick={() => setShowEmojiMart(!showEmojiMart)}>
+          {form.emoji}
+        </div>
+      </div>
+      <label>username</label>
+      <input
+        type="text"
+        placeholder="l33t_user42"
+        value={form.handle}
+        onChange={e => setForm({...form, handle: e.target.value})}
+      />
+      <button onClick={save}>save</button>
+
+      <div
+        className={classNames(['emoji-popover', {open: showEmojiMart}])}
+      >
+        <Picker
+          set="apple"
+          onSelect={(emoji) => {
+            setForm({...form, emoji: emoji.native});
+            setShowEmojiMart(false);
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+const SETTINGS_SCREEN_MENU = 'menu';
+const SETTINGS_SCREEN_EDIT_PROFILE = 'edit-profile';
+const Settings = ({open}) => {
+  ////
+  // Hooks
+  //
+  const [screen, setScreen] = useState(SETTINGS_SCREEN_MENU);
+
+  ////
+  // Rendering
+  //
+  return (
+    <div
+      className={classNames(['room--settings', {open}])}
+    >
+      {screen === SETTINGS_SCREEN_MENU && (
+        <div className="settings--menu">
+          <ul>
+            <li onClick={() => setScreen(SETTINGS_SCREEN_EDIT_PROFILE)}>edit profile</li>
+            <li>report a bug</li>
+            <li>leave room</li>
+          </ul>
+        </div>
+      )}
+      {screen === SETTINGS_SCREEN_EDIT_PROFILE && (
+        <EditProfileSettings
+          onClose={() => setScreen(SETTINGS_SCREEN_MENU)}
+        />
+      )}
+    </div>
+  );
+};
+
 const RoomPage = ({match}) => {
   ////
   // Hooks
@@ -368,6 +461,7 @@ const RoomPage = ({match}) => {
   const isConnecting = useSelector(BuoySelectors.isConnecting);
   const connectedBuoy = useSelector(BuoySelectors.connectedBuoy);
   const dispatch = useDispatch();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [error, setError] = useState(null);
 
   const room = useSelector(RoomSelectors.currentRoom);
@@ -392,17 +486,26 @@ const RoomPage = ({match}) => {
   }
 
   return (
-    <div className="room--container">
-      <NowPlaying />
-      <div className="room--content">
-        <div className="room--main">
-          <DJBar />
-          <Stage />
-          <Audience />
+    <Fragment>
+      <div className="room--container">
+        <NowPlaying />
+        <div className="room--content">
+          <div className="room--main">
+            <DJBar />
+            <Stage />
+            <Audience />
+          </div>
+          <Sidebar />
         </div>
-        <Sidebar />
       </div>
-    </div>
+      <div
+        className={classNames(['room--settings-bubble', {open: settingsOpen}])}
+        onClick={() => setSettingsOpen(!settingsOpen)}
+      >
+        <FontAwesomeIcon icon={settingsOpen ? Icon.faTimes : Icon.faCog} />
+      </div>
+      <Settings open={settingsOpen} />
+    </Fragment>
   );
 };
 

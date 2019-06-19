@@ -49,6 +49,12 @@ export const ActionTypes = {
   VOTE_SUCCESS: 'services/rooms/vote_success',
   VOTE_FAILURE: 'services/rooms/vote_failure',
 
+  SET_PROFILE: 'services/rooms/set_profile',
+  SET_PROFILE_SUCCESS: 'services/rooms/set_profile_success',
+  SET_PROFILE_FAILURE: 'services/rooms/set_profile_failure',
+
+  SET_PEER_PROFILE: 'services/room/set_peer_profile',
+
   NEW_CHAT_MESSAGE: 'services/rooms/new_chat_message',
 };
 
@@ -85,6 +91,11 @@ export const Actions = {
   vote: createAction(ActionTypes.VOTE, 'direction'),
   voteSuccess: createAction(ActionTypes.VOTE_SUCCESS),
   voteFailure: createAction(ActionTypes.VOTE_FAILURE, 'message'),
+
+  setProfile: createAction(ActionTypes.SET_PROFILE, 'profile'),
+  setProfileSuccess: createAction(ActionTypes.SET_PROFILE_SUCCESS),
+  setProfileFailure: createAction(ActionTypes.SET_PROFILE_FAILURE, 'message'),
+  setPeerProfile: createAction(ActionTypes.SET_PEER_PROFILE, 'id', 'profile')
 };
 
 ////
@@ -159,6 +170,14 @@ const callbacks = [
       return s.setIn(['chat', 'messages'], updatedMsgs);
     },
   },
+  {
+    actionType: ActionTypes.SET_PEER_PROFILE,
+    callback: (s, {id, profile}) => {
+      const peerIndex = s.getIn(['currentRoom', 'peers'])
+        .findIndex(peer => peer.get('id') === id);
+      return s.setIn(['currentRoom', 'peers', peerIndex, 'profile'], profile);
+    },
+  }
 ];
 
 export const Reducers = {initialState, callbacks};
@@ -328,6 +347,20 @@ function* vote({direction}) {
   yield put(Actions.voteSuccess());
 }
 
+function* setProfile({profile}) {
+  const resp = yield call(send, {
+    name: 'setProfile',
+    params: {profile},
+  });
+
+  if (resp.error) {
+    yield put(Actions.setProfileFailure({message: resp.message}));
+    return;
+  }
+
+  yield put(Actions.setProfileSuccess());
+}
+
 export function* Saga() {
   yield takeEvery(ActionTypes.FETCH_ALL, fetchAll);
   yield takeEvery(ActionTypes.CREATE_ROOM, createRoom);
@@ -336,9 +369,11 @@ export function* Saga() {
   yield takeEvery(ActionTypes.STEP_DOWN, stepDown);
   yield takeEvery(ActionTypes.SEND_CHAT, sendChat);
   yield takeEvery(ActionTypes.VOTE, vote);
+  yield takeEvery(ActionTypes.SET_PROFILE, setProfile);
 
   yield* rpcToAction('setPeers', Actions.setPeers);
   yield* rpcToAction('setDjs', Actions.setDjs);
   yield* rpcToAction('setActiveDj', Actions.setActiveDj);
   yield* rpcToAction('newChatMsg', Actions.newChatMessage);
+  yield* rpcToAction('setPeerProfile', Actions.setPeerProfile);
 }
