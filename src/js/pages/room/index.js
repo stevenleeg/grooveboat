@@ -371,17 +371,18 @@ const EditProfileSettings = ({onClose}) => {
   // Hooks
   //
   const dispatch = useDispatch();
+  const peer = useSelector(RoomSelectors.currentPeer);
   const [showEmojiMart, setShowEmojiMart] = useState(false);
   const [form, setForm] = useState({
-    handle: '',
-    emoji: '😆',
+    handle: peer.getIn(['profile', 'handle']) || '',
+    emoji: peer.getIn(['profile', 'emoji']) || '❓',
   });
 
   ////
   // Action callbacks
   //
   const save = () => {
-    dispatch(RoomActions.setProfile({profile: form}));
+    dispatch(RoomActions.setProfile({profile: Immutable.fromJS(form)}));
     onClose();
   };
 

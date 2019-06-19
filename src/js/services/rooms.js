@@ -2,11 +2,13 @@ import {createAction} from 'utils/redux';
 import {takeEvery, select, put, call} from 'redux-saga/effects';
 import Immutable from 'immutable';
 
+import db from 'db';
 import {
   send,
   rpcToAction,
   rpcToSaga,
   ActionTypes as BuoyActionTypes,
+  Selectors as BuoySelectors,
 } from './buoys';
 import {
   Selectors as LibrarySelectors
@@ -189,6 +191,12 @@ const store = s => s.getIn(['services', 'rooms']);
 const rooms = s => store(s).get('rooms');
 const currentRoom = s => store(s).get('currentRoom');
 
+const currentPeer = (s) => {
+  const peerId = BuoySelectors.peerId(s);
+  const room = currentRoom(s);
+  const peerIndex = room.get('peers').findIndex(p => p.get('id') === peerId);
+  return room.getIn(['peers', peerIndex]);
+};
 const peerMap = (s) => {
   const room = currentRoom(s);
   if (!room) {
@@ -240,6 +248,7 @@ export const Selectors = {
   store,
   rooms,
   currentRoom,
+  currentPeer,
   peerMap,
   djs,
   audience,
@@ -281,6 +290,25 @@ function* joinRoom({id}) {
   if (resp.error) {
     yield put(Actions.joinRoomFailure({message: resp.message}));
     return;
+  }
+
+  // Set our profile if we have one
+  let profile;
+  try {
+    profile = yield call(db.get, 'profile');
+  } catch (e) {
+    if (e.status !== 404) {
+      // Something went pretty wrong here...
+      yield put(Actions.joinRoomFailure({message: e.message}));
+      return;
+    }
+  }
+
+  if (profile) {
+    yield put(Actions.setProfile({
+      profile: profile.deleteAll(['_id', '_rev']),
+      save: false,
+    }));
   }
 
   yield put(Actions.joinRoomSuccess({room: Immutable.fromJS(resp)}));
@@ -347,7 +375,7 @@ function* vote({direction}) {
   yield put(Actions.voteSuccess());
 }
 
-function* setProfile({profile}) {
+function* setProfile({profile, save = true}) {
   const resp = yield call(send, {
     name: 'setProfile',
     params: {profile},
@@ -356,6 +384,30 @@ function* setProfile({profile}) {
   if (resp.error) {
     yield put(Actions.setProfileFailure({message: resp.message}));
     return;
+  }
+
+  if (save) {
+    // Save the profile for later
+    let dbProf;
+    try {
+      dbProf = yield call(db.get, 'profile');
+    } catch (e) {
+      if (e.status !== 404) {
+        yield put(Actions.setProfileFailure({message: e.message}));
+        return;
+      }
+
+      dbProf = {...profile, _id: 'profile'};
+    }
+
+    const updatedProfile = profile.merge(dbProf);
+
+    try {
+      yield call(db.put, updatedProfile);
+    } catch (e) {
+      yield put(Actions.setProfileFailure({message: e.message}));
+      return;
+    }
   }
 
   yield put(Actions.setProfileSuccess());
