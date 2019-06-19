@@ -35,6 +35,7 @@ export const ActionTypes = {
   PLAY_TRACK_FAILURE: 'services/jukebox/play_track_failure',
   STOP_TRACK: 'services/jukebox/stop_track',
   TRACK_ENDED: 'services/jukebox/track_ended',
+  SET_VOTES: 'services/jukebox/set_votes',
 };
 
 export const Actions = {
@@ -42,6 +43,7 @@ export const Actions = {
   playTrackFailure: createAction(ActionTypes.PLAY_TRACK_FAILURE, 'message'),
   stopTrack: createAction(ActionTypes.STOP_TRACK),
   trackEnded: createAction(ActionTypes.TRACK_ENDED, 'track'),
+  setVotes: createAction(ActionTypes.SET_VOTES, 'votes'),
 };
 
 ////
@@ -62,6 +64,12 @@ const callbacks = [
     actionType: ActionTypes.STOP_TRACK,
     callback: (s, {track}) => {
       return s.merge({currentTrack: null});
+    },
+  },
+  {
+    actionType: ActionTypes.SET_VOTES,
+    callback: (s, {votes}) => {
+      return s.setIn(['currentTrack', 'votes'], votes);
     },
   },
 ];
@@ -116,5 +124,6 @@ export function* Saga() {
   yield takeEvery(ActionTypes.STOP_TRACK, stopTrack);
 
   yield* rpcToAction('playTrack', Actions.playTrack);
+  yield* rpcToAction('setVotes', Actions.setVotes);
   yield* rpcToAction('stopTrack', Actions.stopTrack);
 }

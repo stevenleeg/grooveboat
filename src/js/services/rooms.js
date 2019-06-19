@@ -45,6 +45,10 @@ export const ActionTypes = {
   SEND_CHAT_SUCCESS: 'services/room/send_chat_success',
   SEND_CHAT_FAILURE: 'services/room/send_chat_failure',
 
+  VOTE: 'services/rooms/vote',
+  VOTE_SUCCESS: 'services/rooms/vote_success',
+  VOTE_FAILURE: 'services/rooms/vote_failure',
+
   NEW_CHAT_MESSAGE: 'services/rooms/new_chat_message',
 };
 
@@ -66,17 +70,21 @@ export const Actions = {
 
   stepDown: createAction(ActionTypes.STEP_DOWN),
   stepDownSuccess: createAction(ActionTypes.STEP_DOWN_SUCCESS),
-  stepDownFailure: createAction(ActionTypes.STEP_DOWN_FAILURE),
+  stepDownFailure: createAction(ActionTypes.STEP_DOWN_FAILURE, 'message'),
 
   setNewChatMessage: createAction(ActionTypes.SET_NEW_CHAT_MESSAGE, 'message'),
   sendChat: createAction(ActionTypes.SEND_CHAT),
   sendChatSuccess: createAction(ActionTypes.SEND_CHAT_SUCCESS),
-  sendChatFailure: createAction(ActionTypes.SEND_CHAT_FAILURE),
+  sendChatFailure: createAction(ActionTypes.SEND_CHAT_FAILURE, 'message'),
   newChatMessage: createAction(ActionTypes.NEW_CHAT_MESSAGE),
 
   setPeers: createAction(ActionTypes.SET_PEERS, 'peers'),
   setDjs: createAction(ActionTypes.SET_DJS, 'djs'),
   setActiveDj: createAction(ActionTypes.SET_ACTIVE_DJ, 'djId'),
+
+  vote: createAction(ActionTypes.VOTE, 'direction'),
+  voteSuccess: createAction(ActionTypes.VOTE_SUCCESS),
+  voteFailure: createAction(ActionTypes.VOTE_FAILURE, 'message'),
 };
 
 ////
@@ -306,6 +314,20 @@ function* sendChat() {
   yield put(Actions.sendChatSuccess());
 }
 
+function* vote({direction}) {
+  const resp = yield call(send, {
+    name: 'vote',
+    params: {direction},
+  });
+
+  if (resp.error) {
+    yield put(Actions.voteFailure({message: resp.message}));
+    return;
+  }
+
+  yield put(Actions.voteSuccess());
+}
+
 export function* Saga() {
   yield takeEvery(ActionTypes.FETCH_ALL, fetchAll);
   yield takeEvery(ActionTypes.CREATE_ROOM, createRoom);
@@ -313,6 +335,7 @@ export function* Saga() {
   yield takeEvery(ActionTypes.BECOME_DJ, becomeDj);
   yield takeEvery(ActionTypes.STEP_DOWN, stepDown);
   yield takeEvery(ActionTypes.SEND_CHAT, sendChat);
+  yield takeEvery(ActionTypes.VOTE, vote);
 
   yield* rpcToAction('setPeers', Actions.setPeers);
   yield* rpcToAction('setDjs', Actions.setDjs);

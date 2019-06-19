@@ -30,6 +30,14 @@ const NowPlaying = () => {
   // Hooks
   //
   const currentTrack = useSelector(JukeboxSelectors.currentTrack);
+  const dispatch = useDispatch();
+
+  ////
+  // Action callbacks
+  //
+  const vote = (direction) => {
+    dispatch(RoomActions.vote({direction}));
+  };
 
   ////
   // Rendering
@@ -45,9 +53,19 @@ const NowPlaying = () => {
     <div className="nowplaying">
       <div className="nowplaying--dragbar" />
       <div className="nowplaying--content">
-        <div className="up">👍</div>
+        <div
+          className={classNames(['up', {disabled: !currentTrack}])}
+          onClick={() => vote(true)}
+        >
+          👍
+        </div>
         <div className="song">{song}</div>
-        <div className="down">👎</div>
+        <div
+          className={classNames(['down', {disabled: !currentTrack}])}
+          onClick={() => vote(false)}
+        >
+          👎
+        </div>
       </div>
     </div>
   );
@@ -60,6 +78,7 @@ const Stage = () => {
   const dispatch = useDispatch()
   const room = useSelector(RoomSelectors.currentRoom);
   const djs = useSelector(RoomSelectors.djs);
+  const currentTrack = useSelector(JukeboxSelectors.currentTrack);
 
   ////
   // Render
@@ -96,7 +115,10 @@ const Stage = () => {
             <Peer
               key={peer.get('id')}
               peer={peer}
-              className={classNames({active: peer.get('id') === activeDjId})}
+              className={classNames({
+                active: peer.get('id') === activeDjId,
+                dancing: currentTrack && currentTrack.getIn(['votes', peer.get('id')]),
+              })}
             >
             </Peer>
           );
@@ -116,11 +138,26 @@ const Peer = ({peer, className, children}) => {
   );
 };
 
-const Audience = ({peers}) => {
+const Audience = () => {
+  ////
+  // Hooks
+  //
+  const audience = useSelector(RoomSelectors.audience);
+  const currentTrack = useSelector(JukeboxSelectors.currentTrack);
+
+  ////
+  // Render
+  //
   return (
     <div className="room--audience">
-      {peers.map((peer) => {
-        return <Peer key={peer.get('id')} peer={peer} />;
+      {audience.map((peer) => {
+        return <Peer
+          key={peer.get('id')}
+          peer={peer}
+          className={classNames({
+            dancing: currentTrack && currentTrack.getIn(['votes', peer.get('id')]),
+          })}
+        />;
       })}
     </div>
   );
@@ -325,7 +362,6 @@ const RoomPage = ({match}) => {
   const dispatch = useDispatch();
   const [error, setError] = useState(null);
 
-  const audience = useSelector(RoomSelectors.audience);
   const room = useSelector(RoomSelectors.currentRoom);
 
   useEffect(() => {
@@ -354,7 +390,7 @@ const RoomPage = ({match}) => {
         <div className="room--main">
           <DJBar />
           <Stage />
-          <Audience peers={audience} />
+          <Audience />
         </div>
         <Sidebar />
       </div>

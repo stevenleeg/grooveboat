@@ -75,6 +75,34 @@ $sidebar-width: 300px;
     white-space: nowrap;
     overflow: hidden;
   }
+
+    &.dancing {
+      .icon {
+        animation: dancing 2s infinite;
+      }
+    }
+}
+
+@keyframes dancing {
+  0% {
+    transform: translateX(0px) translateY(0px) rotate(0deg);
+  }
+
+  25% {
+    transform: translateX(3px) translateY(-5px) rotate(10deg);
+  }
+
+  50% {
+    transform: translateX(0px) translateY(0px) rotate(0deg);
+  }
+
+  75% {
+    transform: translateX(-3px) translateY(-5px) rotate(-10deg);
+  }
+
+  100% {
+    transform: translateX(0px) translateY(0px) rotate(0deg);
+  }
 }
 
 .nowplaying {
@@ -109,13 +137,19 @@ $sidebar-width: 300px;
     transition: 150ms;
     height: 100%;
     padding: 20px 20px;
+
+    &.disabled {
+      filter: grayscale(100%);
+      opacity: .3;
+      cursor: default;
+    }
   }
 
   .up {
     margin-right: 10px;
     border-top-right-radius: 5px;
 
-    &:hover {
+    &:not(.disabled):hover {
       text-shadow: 0px 0px 25px $color-green;
       transform: translateY(-7px) rotate(-6deg);
     }
@@ -126,7 +160,7 @@ $sidebar-width: 300px;
     border-top-left-radius: 5px;
     transform: scaleX(-1);
 
-    &:hover {
+    &:not(.disabled):hover {
       text-shadow: 0px 0px 25px $color-red;
       transform: scaleX(-1) translateY(7px) rotate(6deg);
     }
