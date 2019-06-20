@@ -13,16 +13,14 @@
     "utils": "./src/js/utils"
   },
   "scripts": {
-    "react-start": "parcel src/index.html",
-    "electron-start": "electron .",
-    "start": "concurrently \"yarn react-start\" \"wait-on http://localhost:1234 && electron .\""
+    "start": "parcel ./src/index.html",
+    "build": "parcel build ./src/index.html"
   },
   "browserslist": [
     "last 2 Chrome versions"
   ],
   "devDependencies": {
     "concurrently": "^4.1.0",
-    "electron": "^5.0.3",
     "parcel": "^1.12.3",
     "sass": "^1.21.0",
     "typescript": "^3.5.1",
