@@ -1,29 +1,18 @@
 import Immutable from 'immutable';
-import {takeEvery, call, take, select, put} from 'redux-saga/effects';
-import {eventChannel} from 'redux-saga';
+import {takeEvery, fork, call, take, select, put, cancel} from 'redux-saga/effects';
 
 import {createAction} from 'utils/redux';
 import {send, rpcToAction} from './buoys';
+import {Howl} from 'howler';
 
 ////
 // Helpers
 //
-let player = new Audio();
-window.player = player;
-player.addEventListener('error', (e) => {
-  console.log(e);
-});
+let player = null;
 
-const playerChannel = () => {
-  return eventChannel((emit) => {
-    const handler = () => emit({event: 'ended'});
-
-    player.addEventListener('ended', handler);
-
-    return () => {
-      player.removeEventListener('ended', handler);
-      player.pause();
-    };
+const awaitEnd = () => {
+  return new Promise((resolve, reject) => {
+    player.once('end', () => resolve());
   });
 };
 
@@ -35,6 +24,8 @@ export const ActionTypes = {
   PLAY_TRACK_FAILURE: 'services/jukebox/play_track_failure',
   STOP_TRACK: 'services/jukebox/stop_track',
   TRACK_ENDED: 'services/jukebox/track_ended',
+  TRACK_CAN_PLAY: 'services/jukebox/track_can_play',
+  TRACK_SEEKED: 'services/jukebox/track_seeked',
   SET_VOTES: 'services/jukebox/set_votes',
 };
 
@@ -43,6 +34,8 @@ export const Actions = {
   playTrackFailure: createAction(ActionTypes.PLAY_TRACK_FAILURE, 'message'),
   stopTrack: createAction(ActionTypes.STOP_TRACK),
   trackEnded: createAction(ActionTypes.TRACK_ENDED, 'track'),
+  trackCanPlay: createAction(ActionTypes.TRACK_CAN_PLAY),
+  trackSeeked: createAction(ActionTypes.TRACK_SEEKED),
   setVotes: createAction(ActionTypes.SET_VOTES, 'votes'),
 };
 
@@ -90,35 +83,42 @@ export const Selectors = {
 ///
 // Sagas
 //
-function* init() {
-  const playerEvents = yield call(playerChannel);
+function* listenForEnd() {
+  yield call(awaitEnd);
 
-  while (true) {
-    const {event} = yield take(playerEvents);
-
-    if (event === 'ended') {
-      const track = yield select(currentTrack);
-      yield put(Actions.trackEnded({track}));
-    }
-  }
+  const track = yield select(currentTrack);
+  yield put(Actions.trackEnded({track}))
 }
 
-function* playTrack({track}) {
-  player.src = track.get('url');
-  player.load();
+function* playTrack({startedAt, track}) {
+  window.player = player = new Howl({
+    src: [track.get('url')],
+    format: ['mp3'],
+  });
+
+  let seekTo = (+ new Date()) / 1000 - startedAt;
+  if (seekTo >= 1) {
+    player.once('play', () => {
+      // Recalculate the seekTo
+      player.seek((+ new Date()) / 1000 - startedAt)
+    });
+  }
+
   player.play();
+  player.task = yield fork(listenForEnd);
 }
 
 function* trackEnded({track}) {
+  yield cancel(player.task);
   yield call(send, {name: 'trackEnded'});
 }
 
 function* stopTrack() {
+  yield cancel(player.task);
   player.pause();
 }
 
 export function* Saga() {
-  yield takeEvery('init', init);
   yield takeEvery(ActionTypes.PLAY_TRACK, playTrack);
   yield takeEvery(ActionTypes.TRACK_ENDED, trackEnded);
   yield takeEvery(ActionTypes.STOP_TRACK, stopTrack);
