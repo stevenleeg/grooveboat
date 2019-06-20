@@ -404,7 +404,7 @@ function* setProfile({profile, save = true}) {
         return;
       }
 
-      dbProf = {...profile, _id: 'profile'};
+      dbProf = profile.merge({_id: 'profile'});
     }
 
     const updatedProfile = dbProf.merge(profile);
