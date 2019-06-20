@@ -189,7 +189,7 @@ const Queues = () => {
       </select>
 
       <ul className="queues--tracks">
-        {queue && queue.get('tracks').map((track) => {
+        {queue && queue.get('tracks').map((track, i) => {
           let top = track.get('filename');
           if (track.get('track')) {
             top = track.get('track');
@@ -200,17 +200,34 @@ const Queues = () => {
             bottom = track.get('artist');
           }
 
+          const nextTrack = queue.getIn(['tracks', i + 1]);
+          const prevTrack = i == 0 ? null : queue.getIn(['tracks', i - 1]);
+
           return (
             <li key={track.get('_id')}>
               <div className="top">{top}</div>
               {!!bottom && <div className="bottom">{bottom}</div>}
               <div className="actions">
-                <a onClick={() => dispatch(LibraryActions.deleteTrack({track}))}>
-                  <FontAwesomeIcon icon={Icon.faAngleUp} />
-                </a>
-                <a onClick={() => dispatch(LibraryActions.deleteTrack({track}))}>
-                  <FontAwesomeIcon icon={Icon.faAngleDown} />
-                </a>
+                {prevTrack && (
+                  <a
+                    onClick={() => dispatch(LibraryActions.swapTrackOrder({
+                      fromTrackId: track.get('_id'),
+                      toTrackId: prevTrack.get('_id'),
+                    }))}
+                  >
+                    <FontAwesomeIcon icon={Icon.faAngleUp} />
+                  </a>
+                )}
+                {nextTrack && (
+                  <a
+                    onClick={() => dispatch(LibraryActions.swapTrackOrder({
+                      fromTrackId: track.get('_id'),
+                      toTrackId: nextTrack.get('_id'),
+                    }))}
+                  >
+                    <FontAwesomeIcon icon={Icon.faAngleDown} />
+                  </a>
+                )}
                 <a onClick={() => dispatch(LibraryActions.deleteTrack({track}))}>
                   <FontAwesomeIcon icon={Icon.faTimes} />
                 </a>

@@ -58,6 +58,10 @@ export const ActionTypes = {
   ADD_TO_QUEUE_SUCCESS: 'services/library/add_to_queue_success',
   ADD_TO_QUEUE_FAILURE: 'services/library/add_to_queue_failure',
 
+  SWAP_TRACK_ORDER: 'services/library/swap_track_order',
+  SWAP_TRACK_ORDER_SUCCESS: 'services/library/swap_track_order_success',
+  SWAP_TRACK_ORDER_FAILURE: 'services/library/swap_track_order_failure',
+
   SET_TRACK: 'services/library/set_track',
   CYCLE_SELECTED_QUEUE: 'services/library/cycle_selected_queue',
   CYCLE_SELECTED_QUEUE_SUCCESS: 'services/library/cycle_selected_queue_success',
@@ -89,6 +93,10 @@ export const Actions = {
   cycleSelectedQueue: createAction(ActionTypes.CYCLE_SELECTED_QUEUE),
   cycleSelectedQueueSuccess: createAction(ActionTypes.CYCLE_SELECTED_QUEUE_SUCCESS),
   cycleSelectedQueueFailure: createAction(ActionTypes.CYCLE_SELECTED_QUEUE_FAILURE),
+
+  swapTrackOrder: createAction(ActionTypes.SWAP_TRACK_ORDER, 'fromTrackId', 'toTrackId'),
+  swapTrackOrderSuccess: createAction(ActionTypes.SWAP_TRACK_ORDER_SUCCESS),
+  swapTrackOrderFailure: createAction(ActionTypes.SWAP_TRACK_ORDER_FAILURE),
 
   requestTrack: createAction(ActionTypes.REQUEST_TRACK, 'callback'),
   requestTrackFailure: createAction(ActionTypes.REQUEST_TRACK_FAILURE, 'message'),
@@ -157,6 +165,18 @@ const callbacks = [
       return s.merge({selectedQueue: queue});
     },
   },
+  {
+    actionType: ActionTypes.SWAP_TRACK_ORDER,
+    callback: (s, {fromTrackId, toTrackId}) => {
+      const trackIds = s.getIn(['selectedQueue', 'trackIds']);
+      const fromIndex = trackIds.indexOf(fromTrackId);
+      const toIndex = trackIds.indexOf(toTrackId);
+
+      return s
+        .setIn(['selectedQueue', 'trackIds', fromIndex], toTrackId)
+        .setIn(['selectedQueue', 'trackIds', toIndex], fromTrackId);
+    },
+  }
 ];
 
 export const Reducers = {initialState, callbacks};
@@ -385,6 +405,7 @@ export function* Saga() {
   yield takeEvery(ActionTypes.ADD_TO_QUEUE, addToQueue);
   yield takeEvery(ActionTypes.REQUEST_TRACK, requestTrack);
   yield takeEvery(ActionTypes.CYCLE_SELECTED_QUEUE, cycleSelectedQueue);
+  //yield takeEvery(ActionTypes.SWAP_TRACK_ORDER, swapTrackOrder);
 
   yield* rpcToAction('requestTrack', Actions.requestTrack);
 }
