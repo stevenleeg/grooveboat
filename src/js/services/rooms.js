@@ -407,7 +407,7 @@ function* setProfile({profile, save = true}) {
       dbProf = {...profile, _id: 'profile'};
     }
 
-    const updatedProfile = profile.merge(dbProf);
+    const updatedProfile = dbProf.merge(profile);
 
     try {
       yield call(db.put, updatedProfile);
