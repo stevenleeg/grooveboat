@@ -345,7 +345,9 @@ const DJBar = () => {
   ////
   // Rendering
   //
-  if (!activeDjId || activeDjId !== peerId) {
+  const isDj = room.get('djs').indexOf(peerId) !== -1;
+
+  if (!isDj) {
     return false;
   }
 
@@ -357,11 +359,14 @@ const DJBar = () => {
       >
         step down
       </button>
-      <button
-        className="plain"
-      >
-        skip track
-      </button>
+      {activeDjId === peerId && (
+        <button
+          className="plain"
+          onClick={() => dispatch(RoomActions.skipTurn())}
+        >
+          skip turn
+        </button>
+      )}
     </div>
   );
 };
@@ -441,8 +446,9 @@ const Settings = ({open}) => {
         <div className="settings--menu">
           <ul>
             <li onClick={() => setScreen(SETTINGS_SCREEN_EDIT_PROFILE)}>edit profile</li>
-            <li>report a bug</li>
-            <li>leave room</li>
+            <li onClick={() => window.open('https://github.com/stevenleeg/grooveboat/issues', '_blank')}>
+              report a bug
+            </li>
           </ul>
         </div>
       )}

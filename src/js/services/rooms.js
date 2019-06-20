@@ -13,6 +13,7 @@ import {
 import {
   Selectors as LibrarySelectors
 } from './library';
+import {Actions as ToasterActions} from './toaster';
 
 ////
 // Actions
@@ -46,6 +47,7 @@ export const ActionTypes = {
   SEND_CHAT: 'services/room/send_chat',
   SEND_CHAT_SUCCESS: 'services/room/send_chat_success',
   SEND_CHAT_FAILURE: 'services/room/send_chat_failure',
+  NEW_CHAT_MESSAGE: 'services/rooms/new_chat_message',
 
   VOTE: 'services/rooms/vote',
   VOTE_SUCCESS: 'services/rooms/vote_success',
@@ -54,10 +56,11 @@ export const ActionTypes = {
   SET_PROFILE: 'services/rooms/set_profile',
   SET_PROFILE_SUCCESS: 'services/rooms/set_profile_success',
   SET_PROFILE_FAILURE: 'services/rooms/set_profile_failure',
-
   SET_PEER_PROFILE: 'services/room/set_peer_profile',
 
-  NEW_CHAT_MESSAGE: 'services/rooms/new_chat_message',
+  SKIP_TURN: 'services/rooms/skip_turn',
+  SKIP_TURN_SUCCESS: 'services/rooms/skip_turn_success',
+  SKIP_TURN_FAILURE: 'services/rooms/skip_turn_failure',
 };
 
 export const Actions = {
@@ -97,7 +100,11 @@ export const Actions = {
   setProfile: createAction(ActionTypes.SET_PROFILE, 'profile'),
   setProfileSuccess: createAction(ActionTypes.SET_PROFILE_SUCCESS),
   setProfileFailure: createAction(ActionTypes.SET_PROFILE_FAILURE, 'message'),
-  setPeerProfile: createAction(ActionTypes.SET_PEER_PROFILE, 'id', 'profile')
+  setPeerProfile: createAction(ActionTypes.SET_PEER_PROFILE, 'id', 'profile'),
+
+  skipTurn: createAction(ActionTypes.SKIP_TURN),
+  skipTurnSuccess: createAction(ActionTypes.SKIP_TURN_SUCCESS),
+  skipTurnFailure: createAction(ActionTypes.SKIP_TURN_FAILURE, 'message'),
 };
 
 ////
@@ -408,9 +415,26 @@ function* setProfile({profile, save = true}) {
       yield put(Actions.setProfileFailure({message: e.message}));
       return;
     }
+
+    yield put(ToasterActions.notify({
+      title: 'success',
+      message: 'your profile has been updated',
+      icon: '👍',
+    }));
   }
 
   yield put(Actions.setProfileSuccess());
+}
+
+function* skipTurn() {
+  const resp = yield call(send, {name: 'skipTurn'});
+  
+  if (resp.error) {
+    yield put(Actions.skipTurnFailure({message: resp.message}));
+    return;
+  }
+
+  yield put(Actions.skipTurnSuccess());
 }
 
 export function* Saga() {
@@ -422,6 +446,7 @@ export function* Saga() {
   yield takeEvery(ActionTypes.SEND_CHAT, sendChat);
   yield takeEvery(ActionTypes.VOTE, vote);
   yield takeEvery(ActionTypes.SET_PROFILE, setProfile);
+  yield takeEvery(ActionTypes.SKIP_TURN, skipTurn);
 
   yield* rpcToAction('setPeers', Actions.setPeers);
   yield* rpcToAction('setDjs', Actions.setDjs);

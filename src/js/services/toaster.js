@@ -69,7 +69,7 @@ function* notifyFailure({message}) {
   }
 
   yield put(Actions.notify({
-    title: 'Yikes!',
+    title: 'yikes!',
     icon: '🚨',
     message,
   }));

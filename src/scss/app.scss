@@ -195,6 +195,7 @@ a {
   display: flex;
   align-items: center;
   animation: slide-in 4s;
+  z-index: 3000;
 
   .icon {
     text-align: center;

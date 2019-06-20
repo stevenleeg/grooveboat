@@ -172,7 +172,12 @@ export const Selectors = {
 //
 function* join({inviteCode}) {
   const token = JWT.decode(inviteCode);
-  yield call(openSocket, {url: token.u});
+  try {
+    yield call(openSocket, {url: token.u});
+  } catch (e) {
+    yield put(Actions.joinFailure({message: e.message}));
+    return;
+  }
 
   const resp = yield call(send, {
     name: 'join',
