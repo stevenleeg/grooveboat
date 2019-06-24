@@ -79,6 +79,7 @@ const Stage = () => {
   const room = useSelector(RoomSelectors.currentRoom);
   const djs = useSelector(RoomSelectors.djs);
   const currentTrack = useSelector(JukeboxSelectors.currentTrack);
+  const currentPeerId = useSelector(BuoySelectors.peerId);
 
   ////
   // Render
@@ -115,6 +116,7 @@ const Stage = () => {
             <Peer
               key={peer.get('id')}
               peer={peer}
+              me={peer.get('id') === currentPeerId}
               className={classNames({
                 active: peer.get('id') === activeDjId,
                 dancing: currentTrack && currentTrack.getIn(['votes', peer.get('id')]),
@@ -128,9 +130,10 @@ const Stage = () => {
   );
 };
 
-const Peer = ({peer, className, children}) => {
+const Peer = ({peer, className, children, me}) => {
   return (
     <div className={classNames(['peer', className])}>
+      {me && <div className="me-badge" />}
       {children}
       <div className="icon">{peer.getIn(['profile', 'emoji']) || '❓'}</div>
       <div className="name">{peer.getIn(['profile', 'handle']) || peer.get('id')}</div>
@@ -144,6 +147,7 @@ const Audience = () => {
   //
   const audience = useSelector(RoomSelectors.audience);
   const currentTrack = useSelector(JukeboxSelectors.currentTrack);
+  const currentPeerId = useSelector(BuoySelectors.peerId);
 
   ////
   // Render
@@ -153,6 +157,7 @@ const Audience = () => {
       {audience.map((peer) => {
         return <Peer
           key={peer.get('id')}
+          me={peer.get('id') === currentPeerId}
           peer={peer}
           className={classNames({
             dancing: currentTrack && currentTrack.getIn(['votes', peer.get('id')]),
