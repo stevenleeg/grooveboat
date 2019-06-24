@@ -220,7 +220,10 @@ const currentPeer = (s) => {
   const peerId = BuoySelectors.peerId(s);
   const room = currentRoom(s);
   const peerIndex = room.get('peers').findIndex(p => p.get('id') === peerId);
-  return room.getIn(['peers', peerIndex]);
+  const peer = room.getIn(['peers', peerIndex]);
+  const profile = store(s).getIn(['profiles', peerId]);
+
+  return peer.merge({profile});
 };
 const peerMap = (s) => {
   const service = store(s);
