@@ -15,7 +15,7 @@ import {
 import {Actions} from './data';
 import layout from 'components/layout';
 
-const EXAMPLE_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzIjoid3M6Ly9idW95LnRlaWYueHl6LyJ9.Av1Z3HtkzLTMwjyJ_3rs4ARvqpdK8ylHllBrBwF-Vvg';
+const EXAMPLE_JWT = 'should look something like eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzIjoid3M6Ly9idW95LnRlaWYueHl6LyJ9.Av1Z3HtkzLTMwjyJ_3rs4ARvqpdK8ylHllBrBwF-Vvg';
 
 const SCREEN_INVITE = 'invite';
 const SCREEN_CREATE_ROOM = 'create-room';
