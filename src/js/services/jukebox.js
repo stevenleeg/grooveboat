@@ -74,10 +74,26 @@ export const Reducers = {initialState, callbacks};
 //
 const store = s => s.getIn(['services', 'jukebox']);
 const currentTrack = s => store(s).get('currentTrack');
+const voteCounts = (s) => {
+  const track = currentTrack(s);
+  if (!track || !track.get('votes')) {
+    return {upCount: 0, downCount: 0};
+  }
+
+  const votes = track.get('votes');
+  return votes.keySeq().reduce(({upCount, downCount}, peerId) => {
+    if (votes.get(peerId)) {
+      return {upCount: upCount + 1, downCount};
+    } else {
+      return {upCount: upCount, downCount: downCount + 1};
+    }
+  }, {upCount: 0, downCount: 0});
+};
 
 export const Selectors = {
   store,
   currentTrack,
+  voteCounts,
 };
 
 ///

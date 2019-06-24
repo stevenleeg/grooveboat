@@ -86,7 +86,7 @@ $nowplaying-height: 85px;
     font-size: 12px;
     display: block;
     position: absolute;
-    top: 5px;
+    top: 7px;
     left: 5px;
   }
 
@@ -206,12 +206,10 @@ $nowplaying-height: 85px;
 
       .ups {
         background-color: $color-green;
-        width: 75%;
       }
 
       .downs {
         background-color: $color-red;
-        width: 25%;
       }
     }
 
