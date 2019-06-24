@@ -1,4 +1,5 @@
 node_modules/
-dist/
+dist/*
+!dist/_redirects
 .cache/
 .DS_Store
