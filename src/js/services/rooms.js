@@ -194,7 +194,8 @@ const callbacks = [
     actionType: ActionTypes.NEW_CHAT_MESSAGE,
     callback: (s, {...message}) => {
       const updatedMsgs = s.getIn(['chat', 'messages'])
-        .push(Immutable.fromJS(message));
+        .push(Immutable.fromJS(message))
+        .slice(-30); // prune to prevent memory leaks
 
       return s.setIn(['chat', 'messages'], updatedMsgs);
     },
