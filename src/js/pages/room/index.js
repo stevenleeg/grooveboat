@@ -1,29 +1,28 @@
 import React, {useState, useEffect, useRef, Fragment} from 'react';
 import Immutable from 'immutable';
 import {useSelector, useDispatch} from 'react-redux';
-import {withRouter, Redirect} from 'react-router';
+import {withRouter} from 'react-router';
 import classNames from 'classnames';
 import {useDropzone} from 'react-dropzone';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {Picker} from 'emoji-mart';
-import * as Icon from '@fortawesome/free-solid-svg-icons'
+import * as Icon from '@fortawesome/free-solid-svg-icons';
 
 import {
   Actions as RoomActions,
   Selectors as RoomSelectors,
-} from 'services/rooms';
+} from '../../services/rooms';
 import {
   Selectors as BuoySelectors,
-  Actions as BuoyActions,
-} from 'services/buoys';
+} from '../../services/buoys';
 import {
   Actions as LibraryActions,
   Selectors as LibrarySelectors,
-} from 'services/library';
+} from '../../services/library';
 import {
   Selectors as JukeboxSelectors,
-} from 'services/jukebox';
-import {LoadingState, ErrorState} from 'components/bigstates';
+} from '../../services/jukebox';
+import {LoadingState, ErrorState} from '../../components/bigstates';
 import {Actions} from './data';
 
 const NowPlaying = () => {
@@ -75,7 +74,7 @@ const Stage = () => {
   ////
   // Hooks
   //
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const room = useSelector(RoomSelectors.currentRoom);
   const djs = useSelector(RoomSelectors.djs);
   const currentTrack = useSelector(JukeboxSelectors.currentTrack);
@@ -95,14 +94,14 @@ const Stage = () => {
           if (i === djs.count()) {
             return (
               <div
-                key={i} 
+                key={i}
                 className="empty-slot clickable"
                 onClick={() => dispatch(RoomActions.becomeDj())}
               >
                 +
               </div>
             );
-          } else if (!djs.get(i)) {
+          } if (!djs.get(i)) {
             return (
               <div key={i} className="empty-slot" />
             );
@@ -206,7 +205,7 @@ const Queues = () => {
           }
 
           const nextTrack = queue.getIn(['tracks', i + 1]);
-          const prevTrack = i == 0 ? null : queue.getIn(['tracks', i - 1]);
+          const prevTrack = i === 0 ? null : queue.getIn(['tracks', i - 1]);
 
           return (
             <li key={track.get('_id')}>
@@ -246,7 +245,7 @@ const Queues = () => {
         {...getRootProps()}
         className={classNames({
           'queues--dropzone': true,
-          'active': isDragActive,
+          active: isDragActive,
         })}
       >
         <input {...getInputProps()} />
@@ -301,7 +300,11 @@ const Chat = () => {
 
           return (
             <div className="chat--msg" key={msg.get('id')}>
-              <div className="sender-name">{emoji} {handle}</div>
+              <div className="sender-name">
+                {emoji}
+                {' '}
+                {handle}
+              </div>
               <div className="message">{msg.get('message')}</div>
             </div>
           );
@@ -364,7 +367,8 @@ const Sidebar = () => {
           className={classNames({selected: mode === MODE_CHAT})}
           onClick={() => setMode(MODE_CHAT)}
         >
-          chat{chatIndicator}
+          chat
+          {chatIndicator}
         </div>
         <div
           className={classNames({selected: mode === MODE_QUEUE})}
@@ -404,6 +408,7 @@ const DJBar = () => {
   return (
     <div className="dj-bar">
       <button
+        type="button"
         className="plain"
         onClick={() => dispatch(RoomActions.stepDown())}
       >
@@ -411,6 +416,7 @@ const DJBar = () => {
       </button>
       {activeDjId === peerId && (
         <button
+          type="button"
           className="plain"
           onClick={() => dispatch(RoomActions.skipTurn())}
         >
@@ -460,7 +466,7 @@ const EditProfileSettings = ({onClose}) => {
         value={form.handle}
         onChange={e => setForm({...form, handle: e.target.value})}
       />
-      <button onClick={save}>save</button>
+      <button type="button" onClick={save}>save</button>
 
       <div
         className={classNames(['emoji-popover', {open: showEmojiMart}])}
@@ -527,7 +533,6 @@ const RoomPage = ({match}) => {
     dispatch(Actions.init({
       roomId: match.params.roomId,
       failureCallback: ({message}) => {
-        console.log(message);
         setError(message);
       },
     }));
@@ -537,8 +542,8 @@ const RoomPage = ({match}) => {
   // Rendering
   //
   if (error) {
-    return <ErrorState message={error} />
-  } else if (isConnecting || !connectedBuoy || !room) {
+    return <ErrorState message={error} />;
+  } if (isConnecting || !connectedBuoy || !room) {
     return <LoadingState title="connecting" subtitle="give it a sec" />;
   }
 

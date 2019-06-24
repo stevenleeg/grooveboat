@@ -1,6 +1,6 @@
 import Immutable from 'immutable';
 
-export const createAction = (type, ...argNames) => {
+export const createAction = (type) => {
   return (args) => {
     return {
       type,
@@ -28,4 +28,3 @@ export const createReducer = ({initialState, callbacks}) => {
       }, state ? initialState.merge(state) : initialState);
   };
 };
-

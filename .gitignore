@@ -3,3 +3,4 @@ dist/*
 !dist/_redirects
 .cache/
 .DS_Store
+.eslintcache

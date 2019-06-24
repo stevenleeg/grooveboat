@@ -3,22 +3,13 @@ import {takeEvery, call, put, select} from 'redux-saga/effects';
 import JSMediaTags from 'jsmediatags';
 import uuid from 'uuid/v1';
 
-import db from 'db';
-import {createAction} from 'utils/redux';
+import db from '../db';
+import {createAction} from '../utils/redux';
 import {rpcToAction} from './buoys';
 
 const readTags = ({file}) => {
   return new Promise((resolve, reject) => {
     JSMediaTags.read(file, {onSuccess: resolve, onError: reject});
-  });
-};
-
-const readFile = ({file}) => {
-  return new Promise((resolve, reject) => {
-    const fr = new FileReader();
-    fr.onloadend = e => resolve(e.target.result);
-    fr.onerror = e => reject(e);
-    fr.readAsArrayBuffer(file);
   });
 };
 
@@ -35,7 +26,7 @@ const getBase64 = ({file}) => {
 
     reader.readAsDataURL(file);
   });
-}
+};
 
 ////
 // Actions
@@ -152,7 +143,7 @@ const callbacks = [
   },
   {
     actionType: ActionTypes.CYCLE_SELECTED_QUEUE,
-    callback: (s, {queue}) => {
+    callback: (s) => {
       const trackIds = s.getIn(['selectedQueue', 'trackIds']);
       const first = trackIds.first();
       const updated = trackIds.shift().push(first);
@@ -176,7 +167,7 @@ const callbacks = [
         .setIn(['selectedQueue', 'trackIds', fromIndex], toTrackId)
         .setIn(['selectedQueue', 'trackIds', toIndex], fromTrackId);
     },
-  }
+  },
 ];
 
 export const Reducers = {initialState, callbacks};
@@ -207,6 +198,7 @@ function* init() {
     queues = yield call(db.get, 'queues');
   } catch (e) {
     if (e.status !== 404) {
+      // eslint-disable-next-line no-console
       console.log('something went wront fetching the queue', e);
       return;
     }
@@ -251,7 +243,6 @@ function* addTrack({file}) {
       track: (id3.TIT2 ? id3.TIT2.data.trim() : fallbackName),
     };
   } catch (e) {
-    console.log('could not read tags, falling back to filename'),
     tags = {
       filename: file.name,
       artist: null,
@@ -281,7 +272,7 @@ function* addTrack({file}) {
     createdAt: Date.now(),
   });
 
-  let resp
+  let resp;
   try {
     resp = yield call(db.put, tmpTrack);
   } catch (e) {
@@ -340,7 +331,6 @@ function* requestTrack({callback}) {
   }
 
   const contentType = track.getIn(['_attachments', attachmentName, 'content_type']);
-  console.log(contentType);
   const respTrack = track
     .deleteAll(['_id', '_rev', '_attachments'])
     .merge({data: blob, contentType});

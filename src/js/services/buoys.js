@@ -1,11 +1,11 @@
 import Immutable from 'immutable';
-import {createAction} from 'utils/redux';
 import {fork, takeEvery, put, call, take} from 'redux-saga/effects';
-import {delay, eventChannel, END} from 'redux-saga';
+import {eventChannel, END} from 'redux-saga';
 import JWT from 'jsonwebtoken';
 import io from 'socket.io-client';
 
-import db from 'db';
+import {createAction} from '../utils/redux';
+import db from '../db';
 
 let socket = null;
 
@@ -154,7 +154,7 @@ const callbacks = [
   },
 ];
 
-export const Reducers = {initialState, callbacks}
+export const Reducers = {initialState, callbacks};
 
 ////
 // Selectors
@@ -170,6 +170,19 @@ export const Selectors = {
 ////
 // Sagas
 //
+function* listen() {
+  const messageChannel = yield call(listenToSocket);
+  try {
+    while (true) {
+      const {payload, callback} = yield take(messageChannel);
+      yield put(Actions.receive({...payload, callback}));
+    }
+  } finally {
+    console.log('Connection closed'); // eslint-disable-line no-console
+    yield put(Actions.disconnected());
+  }
+}
+
 function* join({inviteCode}) {
   const token = JWT.decode(inviteCode);
   try {
@@ -201,7 +214,6 @@ function* join({inviteCode}) {
   } catch (e) {
     if (e.status !== 404) {
       throw e;
-      return;
     }
 
     store = Immutable.fromJS({
@@ -222,7 +234,7 @@ function* join({inviteCode}) {
     buoy: Immutable.fromJS(buoy),
     peerId: resp.peerId,
   }));
-};
+}
 
 function* connect({buoy}) {
   const token = JWT.decode(buoy.get('token'));
@@ -251,7 +263,7 @@ function* connectFailure({buoy}) {
   try {
     store = yield call(db.get, 'buoys');
   } catch (e) {
-    console.log('could not remove bad buoy');
+    console.log('could not remove bad buoy'); // eslint-disable-line no-console
     return;
   }
 
@@ -261,20 +273,7 @@ function* connectFailure({buoy}) {
   if (buoyIndex !== -1) {
     const updatedStore = store.deleteIn(['buoys', buoyIndex]);
     yield call(db.put, updatedStore);
-    console.log('removing bad buoy ', buoy.get('_id'));
-  }
-}
-
-function* listen() {
-  const messageChannel = yield call(listenToSocket);
-  try {
-    while (true) {
-      const {payload, callback} = yield take(messageChannel);
-      yield put(Actions.receive({...payload, callback}));
-    }
-  } finally {
-    console.log('Connection closed');
-    yield put(Actions.disconnected());
+    console.log('removing bad buoy ', buoy.get('_id')); // eslint-disable-line no-console
   }
 }
 
@@ -286,7 +285,6 @@ function* fetchBuoys() {
   } catch (e) {
     if (e.status !== 404) {
       throw e;
-      return;
     }
 
     buoys = new Immutable.List();
@@ -298,7 +296,7 @@ function* fetchBuoys() {
 export function* rpcToAction(name, actionCreator) {
   yield takeEvery(({type, name: incName}) => {
     return type === ActionTypes.RECEIVE && name === incName;
-  }, function*({params, callback}) {
+  }, function* ({params, callback}) { // eslint-disable-line func-names
     const keys = Object.keys(params);
     const immutable = keys.reduce((map, key) => {
       return {...map, [key]: Immutable.fromJS(params[key])};

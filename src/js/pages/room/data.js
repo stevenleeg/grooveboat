@@ -1,15 +1,15 @@
 import {takeEvery, select, put, take} from 'redux-saga/effects';
-import {createAction} from 'utils/redux';
 
 import {
   Actions as RoomActions,
   ActionTypes as RoomActionTypes,
-} from 'services/rooms';
+} from '../../services/rooms';
 import {
   Selectors as BuoySelectors,
   Actions as BuoyActions,
   ActionTypes as BuoyActionTypes,
-} from 'services/buoys';
+} from '../../services/buoys';
+import {createAction} from '../../utils/redux';
 
 ////
 // Actions
@@ -56,7 +56,6 @@ function* init({roomId, failureCallback}) {
 
   if (type === RoomActionTypes.JOIN_ROOM_FAILURE) {
     failureCallback({message});
-    return;
   }
 }
 

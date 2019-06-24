@@ -1,12 +1,10 @@
-import Immutable from 'immutable';
+import {combineReducers, createReducer} from './utils/redux';
 
-import {combineReducers, createReducer} from 'utils/redux';
-
-import {Reducers as BuoyService} from 'services/buoys';
-import {Reducers as LibraryService} from 'services/library';
-import {Reducers as JukeboxService} from 'services/jukebox';
-import {Reducers as RoomService} from 'services/rooms';
-import {Reducers as ToasterService} from 'services/toaster';
+import {Reducers as BuoyService} from './services/buoys';
+import {Reducers as LibraryService} from './services/library';
+import {Reducers as JukeboxService} from './services/jukebox';
+import {Reducers as RoomService} from './services/rooms';
+import {Reducers as ToasterService} from './services/toaster';
 
 export default combineReducers({
   services: combineReducers({

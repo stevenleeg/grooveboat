@@ -1,6 +1,7 @@
 import Immutable from 'immutable';
 import {takeEvery, put, delay} from 'redux-saga/effects';
-import {createAction} from 'utils/redux';
+
+import {createAction} from '../utils/redux';
 
 ////
 // Actions

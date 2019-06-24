@@ -2,14 +2,14 @@ import React, {Fragment} from 'react';
 import {useSelector} from 'react-redux';
 
 import {
-  Selectors as ToasterSelectors
-} from 'services/toaster';
+  Selectors as ToasterSelectors,
+} from '../services/toaster';
 
 const Toaster = () => {
   const notifications = useSelector(ToasterSelectors.notifications);
   return (
     <Fragment>
-      {notifications.map((notification, i) => {
+      {notifications.map((notification) => {
         const key = `${notification.get('title')}${notification.get('message')}`;
         const icon = notification.get('icon') || '✋';
 

@@ -6,14 +6,12 @@ import classNames from 'classnames';
 
 import {
   Selectors as RoomSelectors,
-  Actions as RoomActions,
-} from 'services/rooms';
+} from '../../services/rooms';
 import {
   Selectors as BuoySelectors,
-  Actions as BuoyActions,
-} from 'services/buoys';
+} from '../../services/buoys';
+import layout from '../../components/layout';
 import {Actions} from './data';
-import layout from 'components/layout';
 
 const EXAMPLE_JWT = 'should look something like eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzIjoid3M6Ly9idW95LnRlaWYueHl6LyJ9.Av1Z3HtkzLTMwjyJ_3rs4ARvqpdK8ylHllBrBwF-Vvg';
 
@@ -49,9 +47,9 @@ const RoomSelectorPage = ({history}) => {
     if (inviteForm.invite.length > 0) {
       const str = inviteForm.invite
         .replace(' ', '')
-        .replace("\n", '');
+        .replace('\n', '');
       try {
-        token = JWT.decode(str)
+        token = JWT.decode(str);
       } catch (e) {
         token = null;
         return;
@@ -103,7 +101,9 @@ const RoomSelectorPage = ({history}) => {
       <Fragment>
         <h1>welcome</h1>
         <p>
-          hmm, looks like you haven't joined a buoy yet. <a onClick={() => setScreen(SCREEN_INVITE)}>have an invite code?</a>
+          hmm, looks like you haven't joined a buoy yet.
+          {' '}
+          <a onClick={() => setScreen(SCREEN_INVITE)}>have an invite code?</a>
         </p>
       </Fragment>
     );
@@ -119,6 +119,7 @@ const RoomSelectorPage = ({history}) => {
           onChange={e => setCreateForm({...createForm, name: e.target.value})}
         />
         <button
+          type="button"
           disabled={createForm.name.length === 0}
           onClick={() => dispatch(Actions.createRoom({
             ...createForm,
@@ -133,7 +134,10 @@ const RoomSelectorPage = ({history}) => {
     content = (
       <Fragment>
         <h1>join a room</h1>
-        <p>you are connected to {connectedBuoy.get('name')}</p>
+        <p>
+          you are connected to
+          {connectedBuoy.get('name')}
+        </p>
         <div
           className={classNames([
             'room-selector--rooms',
@@ -161,7 +165,7 @@ const RoomSelectorPage = ({history}) => {
           )}
         </div>
         {rooms.count() !== 0 && (
-          <button onClick={() => setScreen(SCREEN_CREATE_ROOM)}>create room</button>
+          <button type="button" onClick={() => setScreen(SCREEN_CREATE_ROOM)}>create room</button>
         )}
       </Fragment>
     );

@@ -1,18 +1,14 @@
-import Immutable from 'immutable';
-import {createAction} from 'utils/redux';
 import {takeEvery, put, call, take} from 'redux-saga/effects';
-import {delay, eventChannel, END} from 'redux-saga';
 
 import {
-  Selectors as BuoySelectors,
   Actions as BuoyActions,
   ActionTypes as BuoyActionTypes,
-} from 'services/buoys';
+} from '../../services/buoys';
 import {
-  Selectors as RoomSelectors,
   Actions as RoomActions,
   ActionTypes as RoomActionTypes,
-} from 'services/rooms';
+} from '../../services/rooms';
+import {createAction} from '../../utils/redux';
 
 ////
 // Actions
@@ -56,7 +52,7 @@ function* init() {
 function* joinBuoy({inviteCode, callback}) {
   yield put(BuoyActions.join({inviteCode}));
 
-  const {type, token} = yield take([
+  const {type} = yield take([
     BuoyActionTypes.JOIN_SUCCESS,
     BuoyActionTypes.JOIN_FAILURE,
   ]);

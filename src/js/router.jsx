@@ -1,5 +1,5 @@
 import React from 'react';
-import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
+import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 
 import RoomSelectorPage from './pages/room-selector';
 import RoomPage from './pages/room';

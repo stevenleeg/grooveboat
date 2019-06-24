@@ -1,17 +1,15 @@
-import {createAction} from 'utils/redux';
 import {takeEvery, select, put, call} from 'redux-saga/effects';
 import Immutable from 'immutable';
 
-import db from 'db';
+import {createAction} from '../utils/redux';
+import db from '../db';
 import {
   send,
   rpcToAction,
-  rpcToSaga,
-  ActionTypes as BuoyActionTypes,
   Selectors as BuoySelectors,
 } from './buoys';
 import {
-  Selectors as LibrarySelectors
+  Selectors as LibrarySelectors,
 } from './library';
 import {Actions as ToasterActions} from './toaster';
 
@@ -184,7 +182,7 @@ const callbacks = [
   },
   {
     actionType: ActionTypes.SEND_CHAT_SUCCESS,
-    callback: s => {
+    callback: (s) => {
       return s
         .setIn(['chat', 'newMessage'], '')
         .setIn(['chat', 'sendingMessage'], false);
@@ -205,7 +203,7 @@ const callbacks = [
     callback: (s, {id, profile}) => {
       return s.setIn(['profiles', id], profile);
     },
-  }
+  },
 ];
 
 export const Reducers = {initialState, callbacks};
@@ -258,10 +256,10 @@ const audience = (s) => {
     return new Immutable.List();
   }
 
-  const djs = room.get('djs').toSet();
+  const djSet = room.get('djs').toSet();
   return currentRoom(s)
     .get('peers')
-    .filter(p => !djs.has(p.get('id')))
+    .filter(p => !djSet.has(p.get('id')))
     .map(p => p.set('profile', profiles.get(p.get('id'))));
 };
 
@@ -270,7 +268,7 @@ const newMessage = (s) => {
 };
 
 const chatMessages = (s) => {
-  return store(s).getIn(['chat','messages']);
+  return store(s).getIn(['chat', 'messages']);
 };
 
 const chatMessagesWithPeers = (s) => {
@@ -467,7 +465,7 @@ function* setProfile({profile, save = true}) {
 
 function* skipTurn() {
   const resp = yield call(send, {name: 'skipTurn'});
-  
+
   if (resp.error) {
     yield put(Actions.skipTurnFailure({message: resp.message}));
     return;

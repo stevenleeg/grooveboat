@@ -1,9 +1,9 @@
 import Immutable from 'immutable';
-import {takeEvery, fork, call, take, select, put, cancel} from 'redux-saga/effects';
-
-import {createAction} from 'utils/redux';
-import {send, rpcToAction} from './buoys';
+import {takeEvery, fork, call, select, put, cancel} from 'redux-saga/effects';
 import {Howl} from 'howler';
+
+import {createAction} from '../utils/redux';
+import {send, rpcToAction} from './buoys';
 
 ////
 // Helpers
@@ -11,7 +11,7 @@ import {Howl} from 'howler';
 let player = null;
 
 const awaitEnd = () => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     player.once('end', () => resolve());
   });
 };
@@ -57,7 +57,7 @@ const callbacks = [
   },
   {
     actionType: ActionTypes.STOP_TRACK,
-    callback: (s, {track}) => {
+    callback: (s) => {
       return s.merge({currentTrack: null});
     },
   },
@@ -86,9 +86,8 @@ const voteCounts = (s) => {
   return votes.keySeq().reduce(({upCount, downCount}, peerId) => {
     if (votes.get(peerId)) {
       return {upCount: upCount + 1, downCount};
-    } else {
-      return {upCount: upCount, downCount: downCount + 1};
     }
+    return {upCount, downCount: downCount + 1};
   }, {upCount: 0, downCount: 0});
 };
 
@@ -105,20 +104,23 @@ function* listenForEnd() {
   yield call(awaitEnd);
 
   const track = yield select(currentTrack);
-  yield put(Actions.trackEnded({track}))
+  yield put(Actions.trackEnded({track}));
 }
 
 function* playTrack({startedAt, track}) {
-  window.player = player = new Howl({
+  player = new Howl({
     src: [track.get('url')],
     format: ['mp3'],
   });
 
-  let seekTo = (+ new Date()) / 1000 - startedAt;
+  // Useful for debugging
+  window.player = player;
+
+  const seekTo = (+new Date()) / 1000 - startedAt;
   if (seekTo >= 1) {
     player.once('play', () => {
       // Recalculate the seekTo
-      player.seek((+ new Date()) / 1000 - startedAt)
+      player.seek((+new Date()) / 1000 - startedAt);
     });
   }
 
@@ -126,7 +128,7 @@ function* playTrack({startedAt, track}) {
   player.task = yield fork(listenForEnd);
 }
 
-function* trackEnded({track}) {
+function* trackEnded() {
   yield cancel(player.task);
   yield call(send, {name: 'trackEnded'});
 }
