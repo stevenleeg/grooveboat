@@ -1,6 +1,6 @@
 version: 2
 jobs:
-    lint:
+    build:
         docker:
             - image: circlci/node:7:10
         working_directory: ~/repo
