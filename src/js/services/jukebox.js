@@ -49,8 +49,10 @@ const initialState = Immutable.fromJS({
 const callbacks = [
   {
     actionType: ActionTypes.PLAY_TRACK,
-    callback: (s, {track}) => {
-      return s.merge({currentTrack: track});
+    callback: (s, {track, votes}) => {
+      return s
+        .merge({currentTrack: track})
+        .setIn(['currentTrack', 'votes'], votes);
     },
   },
   {
