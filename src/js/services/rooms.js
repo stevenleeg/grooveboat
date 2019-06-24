@@ -119,6 +119,7 @@ const initialState = Immutable.fromJS({
     newMessage: '',
   },
   currentRoom: null,
+  profiles: {},
 });
 
 const callbacks = [
@@ -136,11 +137,30 @@ const callbacks = [
   },
   {
     actionType: ActionTypes.JOIN_ROOM_SUCCESS,
-    callback: (s, {room}) => s.merge({currentRoom: room}),
+    callback: (s, {room}) => {
+      const profiles = room.get('peers').reduce((map, peer) => {
+        return map.set(peer.get('id'), peer.get('profile'));
+      }, s.get('profiles'));
+
+
+      return s
+        .merge({profiles, currentRoom: room})
+        .setIn(['currentRoom', 'peers'], room.get('peers').map(p => p.delete('profile')));
+    },
   },
   {
     actionType: ActionTypes.SET_PEERS,
-    callback: (s, {peers}) => s.setIn(['currentRoom', 'peers'], peers),
+    callback: (s, {peers}) => {
+      // Extract out the profiles to put into a map that we can reference
+      // separately, even after the peer leaves
+      const profiles = peers.reduce((map, peer) => {
+        return map.set(peer.get('id'), peer.get('profile'));
+      }, s.get('profiles'));
+
+      return s
+        .merge({profiles})
+        .setIn(['currentRoom', 'peers'], peers.map(p => p.delete('profile')));
+    },
   },
   {
     actionType: ActionTypes.SET_DJS,
@@ -182,9 +202,7 @@ const callbacks = [
   {
     actionType: ActionTypes.SET_PEER_PROFILE,
     callback: (s, {id, profile}) => {
-      const peerIndex = s.getIn(['currentRoom', 'peers'])
-        .findIndex(peer => peer.get('id') === id);
-      return s.setIn(['currentRoom', 'peers', peerIndex, 'profile'], profile);
+      return s.setIn(['profiles', id], profile);
     },
   }
 ];
@@ -205,13 +223,15 @@ const currentPeer = (s) => {
   return room.getIn(['peers', peerIndex]);
 };
 const peerMap = (s) => {
+  const service = store(s);
   const room = currentRoom(s);
   if (!room) {
     return new Immutable.List();
   }
 
   return room.get('peers').reduce((map, peer) => {
-    return map.set(peer.get('id'), peer);
+    const peerWithProfile = peer.set('profile', service.getIn(['profiles', peer.get('id')]));
+    return map.set(peer.get('id'), peerWithProfile);
   }, new Immutable.Map());
 };
 
@@ -229,12 +249,16 @@ const djs = (s) => {
 
 const audience = (s) => {
   const room = currentRoom(s);
+  const profiles = store(s).get('profiles');
   if (!room) {
     return new Immutable.List();
   }
 
   const djs = room.get('djs').toSet();
-  return currentRoom(s).get('peers').filter(p => !djs.has(p.get('id')));
+  return currentRoom(s)
+    .get('peers')
+    .filter(p => !djs.has(p.get('id')))
+    .map(p => p.set('profile', profiles.get(p.get('id'))));
 };
 
 const newMessage = (s) => {
@@ -242,11 +266,17 @@ const newMessage = (s) => {
 };
 
 const chatMessagesWithPeers = (s) => {
-  const peers = peerMap(s);
+  const profiles = store(s).get('profiles');
 
   return store(s).getIn(['chat', 'messages']).map((msg) => {
+    const profile = profiles.get(msg.get('fromPeerId')) || new Immutable.Map();
+
+    //console.log(profile.toJS());
     return msg
-      .set('peer', peers.get(msg.get('fromPeerId')))
+      .set('peer', new Immutable.Map({
+        id: msg.get('fromPeerId'),
+        profile,
+      }))
       .remove('fromPeerId');
   });
 };
