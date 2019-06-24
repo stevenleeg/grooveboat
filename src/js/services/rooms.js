@@ -269,6 +269,10 @@ const newMessage = (s) => {
   return store(s).getIn(['chat', 'newMessage']);
 };
 
+const chatMessages = (s) => {
+  return store(s).getIn(['chat','messages']);
+};
+
 const chatMessagesWithPeers = (s) => {
   const profiles = store(s).get('profiles');
 
@@ -294,6 +298,7 @@ export const Selectors = {
   djs,
   audience,
   newMessage,
+  chatMessages,
   chatMessagesWithPeers,
 };
 

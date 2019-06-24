@@ -327,8 +327,36 @@ const MODE_CHAT = 'chat';
 const MODE_QUEUE = 'queue';
 
 const Sidebar = () => {
+  ////
+  // Hooks
+  //
   const [mode, setMode] = useState(MODE_CHAT);
+  const [seenMessages, setSeenMessages] = useState(new Immutable.Set());
 
+  const chatMessages = useSelector(RoomSelectors.chatMessages);
+
+  useEffect(() => {
+    // every time render is called, this function is called.
+    if (mode === MODE_CHAT) {
+      const seen = chatMessages.reduce((set, msg) => {
+        return set.add(msg.get('id'));
+      }, new Immutable.Set());
+
+      setSeenMessages(seen);
+    }
+  }, [chatMessages, mode]);
+
+  const chatMessageIds = chatMessages.reduce((set, msg) => set.add(msg.get('id')), new Immutable.Set());
+  const numUnread = chatMessageIds.subtract(seenMessages).count();
+
+  let chatIndicator = '';
+  if (mode === MODE_QUEUE && numUnread > 0) {
+    chatIndicator = ` (${numUnread})`;
+  }
+
+  ////
+  // Rendering
+  //
   return (
     <div className="room--sidebar">
       <div className="sidebar--tabs">
@@ -336,7 +364,7 @@ const Sidebar = () => {
           className={classNames({selected: mode === MODE_CHAT})}
           onClick={() => setMode(MODE_CHAT)}
         >
-          chat
+          chat{chatIndicator}
         </div>
         <div
           className={classNames({selected: mode === MODE_QUEUE})}
