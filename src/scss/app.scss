@@ -153,6 +153,12 @@ a {
     display: block;
     font-size: 150px;
   }
+
+  p {
+    width: 400px;
+    text-align: center;
+    line-height: 1.3em;
+  }
 }
 
 .bigstates--loading {
@@ -163,6 +169,12 @@ a {
 }
 
 .bigstates--error {
+  &:before {
+    content: "💩";
+  }
+}
+
+.bigstates--application-error {
   &:before {
     content: "💩";
   }

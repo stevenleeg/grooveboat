@@ -44,6 +44,7 @@ module.exports = {
     'no-mixed-operators': OFF,
     'react/jsx-closing-tag-location': OFF,
     'react/jsx-filename-extension': OFF,
+    'react/jsx-one-expression-per-line': OFF,
     'object-curly-newline': OFF,
     'jsx-a11y/click-events-have-key-events': OFF,
     'function-paren-newline': OFF,
