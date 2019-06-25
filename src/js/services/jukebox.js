@@ -111,6 +111,7 @@ function* playTrack({startedAt, track}) {
   player = new Howl({
     src: [track.get('url')],
     format: ['mp3'],
+    html5: true,
   });
 
   // Useful for debugging
