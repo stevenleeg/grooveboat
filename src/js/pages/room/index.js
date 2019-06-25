@@ -80,6 +80,7 @@ const Stage = () => {
   const currentTrack = useSelector(JukeboxSelectors.currentTrack);
   const currentPeerId = useSelector(BuoySelectors.peerId);
   const {upCount, downCount} = useSelector(JukeboxSelectors.voteCounts);
+  fuck();
 
   ////
   // Render

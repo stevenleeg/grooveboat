@@ -25,9 +25,14 @@ export const ErrorState = ({message}) => {
 export const ApplicationError = () => {
   const [seconds, setSeconds] = useState(5);
 
-  useInterval(() => {
-    setSeconds(seconds - 1);
-  }, seconds <= 0 ? null : 1000);
+  // NOTE: Putting a hook into a conditional block is usually a big nono,
+  // however this conditional is for a compile-time constant rather than a
+  // dynamically decided value.
+  if (process.env.NODE_ENV !== 'development') {
+    useInterval(() => {
+      setSeconds(seconds - 1);
+    }, seconds <= 0 ? null : 1000);
+  }
 
   useEffect(() => {
     if (seconds === 0) {
@@ -52,9 +57,11 @@ export const ApplicationError = () => {
         </a>
         .
       </p>
-      <p>
-        <b>this page will automagically refresh in {seconds}...</b>
-      </p>
+      {process.env.NODE_ENV !== 'development' && (
+        <p>
+          <b>this page will automagically refresh in {seconds}...</b>
+        </p>
+      )}
     </div>
   );
 };
