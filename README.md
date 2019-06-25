@@ -35,7 +35,11 @@ Spin up a local webserver:
 $ yarn start
 ```
 
-Or, if you wish to deploy this to your own server, you can run
+And you'll be ready to go. You can visit http://localhost:1234 to see the UI.
+Note that changing the code will cause the development server to automatically
+refresh.
+
+If you wish to deploy this to a production environment, you can run:
 
 ```
 $ yarn build
@@ -48,4 +52,7 @@ serve this directory on a standard webserver.
 In order to start spinning music, you'll need to set up or connect to a [buoy](https://github.com/stevenleeg/groovebuoy).
 
 ## Contributing
-See [[CONTRIBUTING.md]].
+See [CONTRIBUTING.md](https://github.com/stevenleeg/grooveboat/blob/master/CONTRIBUTING.md).
+
+## License
+This project is released under the MIT License, which can be found in [LICENSE.txt](https://github.com/stevenleeg/grooveboat/blob/master/LICENSE.txt).
