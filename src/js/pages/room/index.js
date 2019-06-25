@@ -403,6 +403,27 @@ const Sidebar = () => {
   );
 };
 
+const SkipWarning = () => {
+  ////
+  // Hooks
+  //
+  const room = useSelector(RoomSelectors.currentRoom);
+
+  if (!room.get('skipWarning')) {
+    return false;
+  }
+
+  ////
+  // Render
+  //
+  return (
+    <div className="room--skip-warning">
+      the audience doesn't seem to be liking this track. it'll be skipped
+      shortly unless they change their minds.
+    </div>
+  );
+};
+
 const DJBar = () => {
   ////
   // Hooks
@@ -569,6 +590,7 @@ const RoomPage = ({match}) => {
         <NowPlaying />
         <div className="room--content">
           <div className="room--main">
+            <SkipWarning />
             <DJBar />
             <Stage />
             <Audience />

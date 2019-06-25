@@ -59,6 +59,8 @@ export const ActionTypes = {
   SKIP_TURN: 'services/rooms/skip_turn',
   SKIP_TURN_SUCCESS: 'services/rooms/skip_turn_success',
   SKIP_TURN_FAILURE: 'services/rooms/skip_turn_failure',
+
+  SET_SKIP_WARNING: 'service/rooms/set_skip_warning',
 };
 
 export const Actions = {
@@ -103,6 +105,8 @@ export const Actions = {
   skipTurn: createAction(ActionTypes.SKIP_TURN),
   skipTurnSuccess: createAction(ActionTypes.SKIP_TURN_SUCCESS),
   skipTurnFailure: createAction(ActionTypes.SKIP_TURN_FAILURE, 'message'),
+
+  setSkipWarning: createAction(ActionTypes.SET_SKIP_WARNING, 'value'),
 };
 
 ////
@@ -202,6 +206,12 @@ const callbacks = [
     actionType: ActionTypes.SET_PEER_PROFILE,
     callback: (s, {id, profile}) => {
       return s.setIn(['profiles', id], profile);
+    },
+  },
+  {
+    actionType: ActionTypes.SET_SKIP_WARNING,
+    callback: (s, {value}) => {
+      return s.setIn(['currentRoom', 'skipWarning'], value);
     },
   },
 ];
@@ -490,4 +500,5 @@ export function* Saga() {
   yield* rpcToAction('setActiveDj', Actions.setActiveDj);
   yield* rpcToAction('newChatMsg', Actions.newChatMessage);
   yield* rpcToAction('setPeerProfile', Actions.setPeerProfile);
+  yield* rpcToAction('setSkipWarning', Actions.setSkipWarning);
 }

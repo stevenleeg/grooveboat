@@ -538,3 +538,26 @@ $nowplaying-height: 85px;
     }
   }
 }
+
+.room--skip-warning {
+  background: $color-red;
+  padding: 10px 15px;
+  line-height: 1.3em;
+  color: $color-white;
+  animation: skip-warning 2s infinite;
+  text-align: center;
+}
+
+@keyframes skip-warning {
+  0% {
+    background-color: rgba($color-red, 1);
+  }
+
+  50% {
+    background-color: rgba($color-red, .7);
+  }
+
+  100% {
+    background-color: rgba($color-red, 1);
+  }
+}
