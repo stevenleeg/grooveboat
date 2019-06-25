@@ -122,12 +122,25 @@ function* playTrack({startedAt, track}) {
   const BUFFER = 3;
   yield delay(BUFFER * 1000);
 
+  // Make sure we're still streaming this track, as there's a chance
+  // stopTrack has been called while we were sleeping
+  track = yield select(currentTrack);
+  if (!track) {
+    return;
+  }
+
   player.task = yield fork(listenForEnd);
   currentId = player.play();
 
   // Schedule four syncing events
   yield delay(350);
   for (let i = 0; i < 4; i += 1) {
+    // Do another check
+    track = yield select(currentTrack);
+    if (!track) {
+      return;
+    }
+
     const now = (+new Date()) / 1000;
     const seekTo = (now - (startedAt + BUFFER));
     if (Math.abs(player.seek() - seekTo) > 1.5) {
