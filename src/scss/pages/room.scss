@@ -199,6 +199,7 @@ $nowplaying-height: 85px;
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
     margin-right: 15px;
+    margin-bottom: 0px;
 
     .popularity-bar {
       position: absolute;
@@ -369,7 +370,7 @@ $nowplaying-height: 85px;
 
 .chat--msg {
   display: flex;
-  padding: 3px 15px 0px 15px;
+  padding: 3px 15px 2px 15px;
   flex-direction: column;
 
   &:nth-child(1) {
@@ -377,7 +378,7 @@ $nowplaying-height: 85px;
   }
 
   &:nth-last-child(1) {
-    padding-bottom: 7px;
+    padding-bottom: 10px;
   }
 
   .sender-name {
