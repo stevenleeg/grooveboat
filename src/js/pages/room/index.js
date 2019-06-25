@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useRef, Fragment} from 'react';
+import {CSSTransitionGroup} from 'react-transition-group';
 import Immutable from 'immutable';
 import {useSelector, useDispatch} from 'react-redux';
 import {withRouter} from 'react-router';
@@ -524,7 +525,7 @@ const EditProfileSettings = ({onClose}) => {
 
 const SETTINGS_SCREEN_MENU = 'menu';
 const SETTINGS_SCREEN_EDIT_PROFILE = 'edit-profile';
-const Settings = ({open}) => {
+const Settings = ({open, onClose}) => {
   ////
   // Hooks
   //
@@ -549,7 +550,7 @@ const Settings = ({open}) => {
       )}
       {screen === SETTINGS_SCREEN_EDIT_PROFILE && (
         <EditProfileSettings
-          onClose={() => setScreen(SETTINGS_SCREEN_MENU)}
+          onClose={() => onClose()}
         />
       )}
     </div>
@@ -606,7 +607,15 @@ const RoomPage = ({match}) => {
       >
         <FontAwesomeIcon icon={settingsOpen ? Icon.faTimes : Icon.faCog} />
       </div>
-      <Settings open={settingsOpen} />
+      <CSSTransitionGroup
+        transitionName="room-settings--trans"
+        transitionEnterTimeout={250}
+        transitionLeaveTimeout={250}
+      >
+        {settingsOpen && (
+          <Settings key="settings" onClose={() => setSettingsOpen(false)} />
+        )}
+      </CSSTransitionGroup>
     </Fragment>
   );
 };

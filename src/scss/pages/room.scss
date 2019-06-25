@@ -435,6 +435,42 @@ $nowplaying-height: 85px;
   }
 }
 
+.room-settings--trans-enter {
+  opacity: 0;
+
+  .settings--menu {
+    transform: scale(0);
+  }
+
+  &.room-settings--trans-enter-active {
+    opacity: 1;
+    transition: 250ms ease-in;
+
+    [class^="settings--"] {
+      transform: scale(1);
+      transition: 250ms ease-in;
+    }
+  }
+}
+
+.room-settings--trans-leave {
+  opacity: 1;
+
+  .settings--menu {
+    transform: scale(1);
+  }
+
+  &.room-settings--trans-leave-active {
+    opacity: 0;
+    transition: 250ms ease-out;
+
+    [class^="settings--"] {
+      transform: scale(0);
+      transition: 250ms ease-out;
+    }
+  }
+}
+
 .room--settings {
   position: fixed;
   top: 0px;
@@ -446,23 +482,7 @@ $nowplaying-height: 85px;
   display: flex;
   justify-content: center;
   align-items: center;
-  pointer-events: none;
-  opacity: 0;
-  transition: 200ms;
-
-  .settings--menu {
-    transform: scale(0);
-    transition: 200ms;
-  }
-
-  &.open {
-    opacity: 1;
-    pointer-events: auto;
-
-    .settings--menu {
-      transform: scale(1);
-    }
-  }
+  pointer-events: auto;
 }
 
 .settings--menu {
