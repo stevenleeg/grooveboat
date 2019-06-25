@@ -31,6 +31,7 @@ const NowPlaying = () => {
   //
   const currentTrack = useSelector(JukeboxSelectors.currentTrack);
   const dispatch = useDispatch();
+  const currentPeerId = useSelector(BuoySelectors.peerId);
 
   ////
   // Action callbacks
@@ -49,23 +50,38 @@ const NowPlaying = () => {
     song = currentTrack.get('filename');
   }
 
+  const currentPeerVote = currentTrack ? currentTrack.getIn(['votes', currentPeerId]) : null;
+
   return (
     <div className="nowplaying">
       <div className="nowplaying--content">
-        <div
-          className={classNames(['up', {disabled: !currentTrack}])}
+        <VoteButton
+          direction="up"
+          isDisabled={!currentTrack}
+          isToggled={currentPeerVote === true}
           onClick={() => vote(true)}
-        >
-          👍
-        </div>
+        />
         <div className="song">{song}</div>
-        <div
-          className={classNames(['down', {disabled: !currentTrack}])}
+        <VoteButton
+          direction="down"
+          isDisabled={!currentTrack}
+          isToggled={currentPeerVote === false}
           onClick={() => vote(false)}
-        >
-          👎
-        </div>
+        />
       </div>
+    </div>
+  );
+};
+
+const VoteButton = ({direction, isDisabled, isToggled, onClick}) => {
+  const voteEmoji = direction === 'up' ? '👍' : '👎';
+
+  return (
+    <div
+      className={classNames([direction, {disabled: isDisabled}, {toggled: isToggled}])}
+      onClick={isDisabled ? null : onClick}
+    >
+      {voteEmoji}
     </div>
   );
 };
