@@ -1,5 +1,5 @@
 import Immutable from 'immutable';
-import {takeEvery, fork, call, select, put, cancel} from 'redux-saga/effects';
+import {takeEvery, fork, call, select, put, cancel, delay} from 'redux-saga/effects';
 import {Howl} from 'howler';
 
 import {createAction} from '../utils/redux';
@@ -9,6 +9,7 @@ import {send, rpcToAction} from './buoys';
 // Helpers
 //
 let player = null;
+let currentId = -1;
 
 const awaitEnd = () => {
   return new Promise((resolve) => {
@@ -111,22 +112,31 @@ function* playTrack({startedAt, track}) {
   player = new Howl({
     src: [track.get('url')],
     format: ['mp3'],
-    html5: true,
+    html5: false,
   });
 
   // Useful for debugging
   window.player = player;
 
-  const seekTo = (+new Date()) / 1000 - startedAt;
-  if (seekTo >= 1) {
-    player.once('play', () => {
-      // Recalculate the seekTo
-      player.seek((+new Date()) / 1000 - startedAt);
-    });
-  }
+  // Delay for 3 seconds to buffer the track
+  const BUFFER = 3;
+  yield delay(BUFFER * 1000);
 
-  player.play();
   player.task = yield fork(listenForEnd);
+  currentId = player.play();
+
+  // Schedule two syncing events
+  yield delay(350);
+  for (let i = 0; i < 2; i += 1) {
+    const now = (+new Date()) / 1000;
+    const seekTo = (now - (startedAt + BUFFER));
+    if (Math.abs(player.seek() - seekTo) > 1.5) {
+      player.pause(currentId);
+      player.seek(seekTo, currentId);
+      player.play(currentId);
+    }
+    yield delay(3000);
+  }
 }
 
 function* trackEnded() {
