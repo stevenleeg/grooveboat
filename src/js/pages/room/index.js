@@ -133,10 +133,12 @@ const Stage = () => {
                 dancing: currentTrack && currentTrack.getIn(['votes', peer.get('id')]),
               })}
             >
-              <div className="popularity-bar">
-                <div className="ups" style={{flex: upCount}} />
-                <div className="downs" style={{flex: downCount}} />
-              </div>
+              {peer.get('id') === activeDjId && (
+                <div className="popularity-bar">
+                  <div className="ups" style={{flex: upCount}} />
+                  <div className="downs" style={{flex: downCount}} />
+                </div>
+              )}
             </Peer>
           );
         })}
