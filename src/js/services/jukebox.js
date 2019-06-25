@@ -125,9 +125,9 @@ function* playTrack({startedAt, track}) {
   player.task = yield fork(listenForEnd);
   currentId = player.play();
 
-  // Schedule two syncing events
+  // Schedule four syncing events
   yield delay(350);
-  for (let i = 0; i < 2; i += 1) {
+  for (let i = 0; i < 4; i += 1) {
     const now = (+new Date()) / 1000;
     const seekTo = (now - (startedAt + BUFFER));
     if (Math.abs(player.seek() - seekTo) > 1.5) {
