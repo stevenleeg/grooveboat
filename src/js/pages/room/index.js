@@ -34,6 +34,8 @@ const NowPlaying = () => {
   const currentTrack = useSelector(JukeboxSelectors.currentTrack);
   const dispatch = useDispatch();
   const currentPeerId = useSelector(BuoySelectors.peerId);
+  const room = useSelector(RoomSelectors.currentRoom);
+  const activeDjId = room.get('activeDj');
 
   ////
   // Action callbacks
@@ -53,20 +55,21 @@ const NowPlaying = () => {
   }
 
   const currentPeerVote = currentTrack ? currentTrack.getIn(['votes', currentPeerId]) : null;
+  const isVotingDisabled = !currentTrack || activeDjId === currentPeerId;
 
   return (
     <div className="nowplaying">
       <div className="nowplaying--content">
         <VoteButton
           direction="up"
-          isDisabled={!currentTrack}
+          isDisabled={isVotingDisabled}
           isToggled={currentPeerVote === true}
           onClick={() => vote(true)}
         />
         <div className="song">{song}</div>
         <VoteButton
           direction="down"
-          isDisabled={!currentTrack}
+          isDisabled={isVotingDisabled}
           isToggled={currentPeerVote === false}
           onClick={() => vote(false)}
         />
