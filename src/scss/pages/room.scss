@@ -426,6 +426,11 @@ li.queues--tracks-track {
     font-size: 16px;
     height: 4em;
     border-top: 1px solid $color-border;
+
+    &:disabled {
+      background-color: darken($color-white, 1%);
+      color: $color-alt-text;
+    }
   }
 }
 

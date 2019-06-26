@@ -287,6 +287,7 @@ const Chat = () => {
   const dispatch = useDispatch();
   const newMessage = useSelector(RoomSelectors.newMessage);
   const messages = useSelector(RoomSelectors.chatMessagesWithPeers);
+  const sendingMessage = useSelector(RoomSelectors.sendingMessage);
   const msgsContainerEl = useRef(null);
 
   useEffect(() => {
@@ -342,6 +343,7 @@ const Chat = () => {
       <div className="chat--compose">
         <textarea
           placeholder="type it and hit enter"
+          disabled={sendingMessage}
           onChange={onChange}
           value={newMessage}
           onKeyPress={onKeyPress}
