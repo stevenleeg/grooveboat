@@ -136,7 +136,7 @@ const RoomSelectorPage = ({history}) => {
         <h1>join a room</h1>
         <p>
           you are connected to
-          {connectedBuoy.get('name')}
+          {` ${connectedBuoy.get('name')}`}
         </p>
         <div
           className={classNames([
