@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useRef, Fragment} from 'react';
 import {CSSTransitionGroup} from 'react-transition-group';
+import {SortableContainer, SortableElement} from 'react-sortable-hoc';
 import Immutable from 'immutable';
 import {useSelector, useDispatch} from 'react-redux';
 import {withRouter} from 'react-router';
@@ -186,6 +187,46 @@ const Audience = () => {
   );
 };
 
+const Track = SortableElement(({track, onDelete}) => {
+  let top = track.get('filename');
+  if (track.get('track')) {
+    top = track.get('track');
+  }
+
+  let bottom = 'Untitled';
+  if (track.get('artist')) {
+    bottom = track.get('artist');
+  }
+
+  return (
+    <li className="queues--tracks-track">
+      <div className="top">{top}</div>
+      {!!bottom && <div className="bottom">{bottom}</div>}
+      <div className="actions">
+        <a onClick={onDelete}><FontAwesomeIcon icon={Icon.faTimes} /></a>
+      </div>
+    </li>
+  );
+});
+
+const TrackList = SortableContainer(({tracks, onDelete}) => {
+  return (
+    <ul className="queues--tracks">
+      {tracks.map((track, i) => {
+        return (
+          <Track
+            key={track.get('_id')}
+            onDelete={() => onDelete({track})}
+            track={track}
+            index={i}
+            helperClass="active"
+          />
+        );
+      })}
+    </ul>
+  );
+});
+
 const Queues = () => {
   ////
   // Hooks
@@ -202,64 +243,29 @@ const Queues = () => {
     });
   };
 
-  const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
+  const sortEnd = ({oldIndex, newIndex}) => {
+    const fromTrackId = queue.getIn(['tracks', oldIndex, '_id']);
+    const toTrackId = queue.getIn(['tracks', newIndex, '_id']);
+    dispatch(LibraryActions.swapTrackOrder({fromTrackId, toTrackId}));
+  };
 
+  const onDelete = ({track}) => dispatch(LibraryActions.deleteTrack({track}));
+
+  ////
+  // Render
+  //
+  const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
   return (
     <div className="sidebar--queues">
       <select>
         <option>default</option>
         <option>+ new queue</option>
       </select>
-
-      <ul className="queues--tracks">
-        {queue && queue.get('tracks').map((track, i) => {
-          let top = track.get('filename');
-          if (track.get('track')) {
-            top = track.get('track');
-          }
-
-          let bottom = '';
-          if (track.get('artist')) {
-            bottom = track.get('artist');
-          }
-
-          const nextTrack = queue.getIn(['tracks', i + 1]);
-          const prevTrack = i === 0 ? null : queue.getIn(['tracks', i - 1]);
-
-          return (
-            <li key={track.get('_id')}>
-              <div className="top">{top}</div>
-              {!!bottom && <div className="bottom">{bottom}</div>}
-              <div className="actions">
-                {prevTrack && (
-                  <a
-                    onClick={() => dispatch(LibraryActions.swapTrackOrder({
-                      fromTrackId: track.get('_id'),
-                      toTrackId: prevTrack.get('_id'),
-                    }))}
-                  >
-                    <FontAwesomeIcon icon={Icon.faAngleUp} />
-                  </a>
-                )}
-                {nextTrack && (
-                  <a
-                    onClick={() => dispatch(LibraryActions.swapTrackOrder({
-                      fromTrackId: track.get('_id'),
-                      toTrackId: nextTrack.get('_id'),
-                    }))}
-                  >
-                    <FontAwesomeIcon icon={Icon.faAngleDown} />
-                  </a>
-                )}
-                <a onClick={() => dispatch(LibraryActions.deleteTrack({track}))}>
-                  <FontAwesomeIcon icon={Icon.faTimes} />
-                </a>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-
+      <TrackList
+        tracks={queue.get('tracks')}
+        onSortEnd={sortEnd}
+        onDelete={onDelete}
+      />
       <div
         {...getRootProps()}
         className={classNames({

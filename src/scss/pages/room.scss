@@ -290,44 +290,62 @@ $nowplaying-height: 85px;
 .queues--tracks {
   display: block;
   flex: 1;
-  list-style-type: none;
   margin: 0px;
   padding: 0px;
 
-  li {
-    padding: 10px 15px;
-    cursor: default;
-    position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
 
-    &:not(:nth-last-child(1)) {
-      border-bottom: 1px dotted $color-border;
-    }
+li.queues--tracks-track {
+  padding: 10px 15px;
+  cursor: default;
+  position: relative;
+  list-style-type: none;
+  background: $color-white;
+  cursor: grab;
 
-    .top {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+
+  &.active {
+    opacity: .8;
+    cursor: grabbing;
+  }
+
+  &:not(:nth-last-child(1)) {
+    border-bottom: 1px dotted $color-border;
+  }
+
+  .top {
+    font-size: 18px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .bottom {
+    font-size: 14px;
+    color: $color-alt-text;
+    margin-top: 3px;
+  }
+
+  .actions {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    display: flex;
+
+    a {
+      display: block;
+      padding: 5px;
       font-size: 18px;
-    }
-
-    .bottom {
-      font-size: 14px;
       color: $color-alt-text;
-      margin-top: 3px;
-    }
 
-    .actions {
-      position: absolute;
-      top: 0px;
-      right: 0px;
-      display: flex;
-
-      a {
-        display: block;
-        padding: 5px;
-        font-size: 18px;
-        color: $color-alt-text;
-
-        &:hover {
-          color: $color-blue;
-        }
+      &:hover {
+        color: $color-blue;
       }
     }
   }

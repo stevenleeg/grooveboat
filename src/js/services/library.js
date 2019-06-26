@@ -86,7 +86,7 @@ export const Actions = {
   cycleSelectedQueueFailure: createAction(ActionTypes.CYCLE_SELECTED_QUEUE_FAILURE),
 
   swapTrackOrder: createAction(ActionTypes.SWAP_TRACK_ORDER, 'fromTrackId', 'toTrackId'),
-  swapTrackOrderSuccess: createAction(ActionTypes.SWAP_TRACK_ORDER_SUCCESS),
+  swapTrackOrderSuccess: createAction(ActionTypes.SWAP_TRACK_ORDER_SUCCESS, 'queue'),
   swapTrackOrderFailure: createAction(ActionTypes.SWAP_TRACK_ORDER_FAILURE),
 
   requestTrack: createAction(ActionTypes.REQUEST_TRACK, 'callback'),
@@ -166,6 +166,12 @@ const callbacks = [
       return s
         .setIn(['selectedQueue', 'trackIds', fromIndex], toTrackId)
         .setIn(['selectedQueue', 'trackIds', toIndex], fromTrackId);
+    },
+  },
+  {
+    actionType: ActionTypes.SWAP_TRACK_ORDER_SUCCESS,
+    callback: (s, {queue}) => {
+      return s.set('selectedQueue', queue);
     },
   },
 ];
@@ -388,6 +394,20 @@ function* cycleSelectedQueue() {
   }));
 }
 
+function* swapTrackOrder() {
+  const selectedQueue = yield select(Selectors.selectedQueue);
+
+  let resp;
+  try {
+    resp = yield call(db.put, selectedQueue);
+  } catch (e) {
+    yield put(Actions.swapTrackOrderFailure({message: e.message}));
+    return;
+  }
+
+  yield put(Actions.swapTrackOrderSuccess({queue: selectedQueue.set('_rev', resp.rev)}));
+}
+
 export function* Saga() {
   yield takeEvery('init', init);
   yield takeEvery(ActionTypes.ADD_TRACK, addTrack);
@@ -395,7 +415,7 @@ export function* Saga() {
   yield takeEvery(ActionTypes.ADD_TO_QUEUE, addToQueue);
   yield takeEvery(ActionTypes.REQUEST_TRACK, requestTrack);
   yield takeEvery(ActionTypes.CYCLE_SELECTED_QUEUE, cycleSelectedQueue);
-  //yield takeEvery(ActionTypes.SWAP_TRACK_ORDER, swapTrackOrder);
+  yield takeEvery(ActionTypes.SWAP_TRACK_ORDER, swapTrackOrder);
 
   yield* rpcToAction('requestTrack', Actions.requestTrack);
 }
