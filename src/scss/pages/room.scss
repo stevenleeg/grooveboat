@@ -256,6 +256,7 @@ $nowplaying-height: 85px;
   display: flex;
   flex-direction: column;
   flex: 1;
+  overflow-y: hidden;
 
   select {
     display: none;
@@ -292,6 +293,7 @@ $nowplaying-height: 85px;
   flex: 1;
   margin: 0px;
   padding: 0px;
+  overflow-y: scroll;
 
   user-select: none;
   -webkit-user-select: none;
