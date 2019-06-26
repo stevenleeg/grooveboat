@@ -529,10 +529,37 @@ const Settings = ({open}) => {
   // Hooks
   //
   const [screen, setScreen] = useState(SETTINGS_SCREEN_MENU);
+  const [codeCopied, setCodeCopied] = useState(false);
+  const inviteCode = useSelector(BuoySelectors.connectedBuoy).get('token');
+
+  ////
+  // Action callbacks
+  //
+  const copyInviteCode = () => {
+    const dummy = document.createElement('textarea');
+    dummy.value = inviteCode;
+    document.body.appendChild(dummy);
+    dummy.select();
+    document.execCommand('copy');
+    document.body.removeChild(dummy);
+
+    setCodeCopied(true);
+    setTimeout(() => {
+      setCodeCopied(false);
+    }, 2000);
+  };
 
   ////
   // Rendering
   //
+  let copyText;
+
+  if (codeCopied) {
+    copyText = '✅ copied!';
+  } else {
+    copyText = '🔗 copy invite code';
+  }
+
   return (
     <div
       className={classNames(['room--settings', {open}])}
@@ -545,6 +572,9 @@ const Settings = ({open}) => {
               report a bug
             </li>
           </ul>
+          <a className={classNames(['invite-code-link', {success: codeCopied}])} onClick={() => copyInviteCode()}>
+            {copyText}
+          </a>
         </div>
       )}
       {screen === SETTINGS_SCREEN_EDIT_PROFILE && (

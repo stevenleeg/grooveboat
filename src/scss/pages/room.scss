@@ -453,6 +453,7 @@ $nowplaying-height: 85px;
   .settings--menu {
     transform: scale(0);
     transition: 200ms;
+    text-align: center;
   }
 
   &.open {
