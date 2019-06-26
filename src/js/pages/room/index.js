@@ -27,6 +27,9 @@ import {
 import {LoadingState, ErrorState} from '../../components/bigstates';
 import {Actions} from './data';
 
+import BoatImageURL from '../../../assets/img/boat.png';
+import ChatImageURL from '../../../assets/img/chat.png';
+
 const NowPlaying = () => {
   ////
   // Hooks
@@ -370,6 +373,11 @@ const Chat = () => {
 const MODE_CHAT = 'chat';
 const MODE_QUEUE = 'queue';
 
+const setFavicon = (img) => {
+  const fav = document.getElementById('favicon');
+  fav.href = img;
+};
+
 const Sidebar = () => {
   ////
   // Hooks
@@ -380,16 +388,29 @@ const Sidebar = () => {
   const chatMessages = useSelector(RoomSelectors.chatMessages);
 
   useEffect(() => {
-    // every time render is called, this function is called.
+    // If we're in chat mode, mark all of the chat messages as read
     if (mode === MODE_CHAT) {
       const seen = chatMessages.reduce((set, msg) => {
         return set.add(msg.get('id'));
       }, new Immutable.Set());
 
       setSeenMessages(seen);
+      setFavicon(BoatImageURL);
+    }
+
+    // If we're in queue mode, set the favicon to the chat icon if there are
+    // unread messages
+    if (mode === MODE_QUEUE) {
+      const chatMessageIds = chatMessages.reduce((set, msg) => set.add(msg.get('id')), new Immutable.Set());
+      const numUnread = chatMessageIds.subtract(seenMessages).count();
+      if (numUnread > 0) {
+        setFavicon(ChatImageURL);
+      }
     }
   }, [chatMessages, mode]);
 
+  // Subtract the set of current message ids from the set of read message ids
+  // to get our unread count
   const chatMessageIds = chatMessages.reduce((set, msg) => set.add(msg.get('id')), new Immutable.Set());
   const numUnread = chatMessageIds.subtract(seenMessages).count();
 
