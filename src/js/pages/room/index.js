@@ -187,7 +187,7 @@ const Audience = () => {
   );
 };
 
-const Track = SortableElement(({track, onDelete}) => {
+const Track = SortableElement(({track, onDelete, onBump, index}) => {
   let top = track.get('filename');
   if (track.get('track')) {
     top = track.get('track');
@@ -203,13 +203,14 @@ const Track = SortableElement(({track, onDelete}) => {
       <div className="top">{top}</div>
       {!!bottom && <div className="bottom">{bottom}</div>}
       <div className="actions">
+        {index !== 0 && <a onClick={onBump}><FontAwesomeIcon icon={Icon.faAngleUp} /></a>}
         <a onClick={onDelete}><FontAwesomeIcon icon={Icon.faTimes} /></a>
       </div>
     </li>
   );
 });
 
-const TrackList = SortableContainer(({tracks, onDelete}) => {
+const TrackList = SortableContainer(({tracks, onDelete, onBump}) => {
   return (
     <ul className="queues--tracks">
       {tracks.map((track, i) => {
@@ -217,6 +218,7 @@ const TrackList = SortableContainer(({tracks, onDelete}) => {
           <Track
             key={track.get('_id')}
             onDelete={() => onDelete({track})}
+            onBump={() => onBump({track})}
             track={track}
             index={i}
             helperClass="active"
@@ -246,7 +248,14 @@ const Queues = () => {
   const sortEnd = ({oldIndex, newIndex}) => {
     const fromTrackId = queue.getIn(['tracks', oldIndex, '_id']);
     const toTrackId = queue.getIn(['tracks', newIndex, '_id']);
+
     dispatch(LibraryActions.swapTrackOrder({fromTrackId, toTrackId}));
+  };
+
+  const onBump = ({track}) => {
+    // Bump the track to the top of the queue
+    const toTrackId = queue.getIn(['tracks', 0, '_id']);
+    dispatch(LibraryActions.swapTrackOrder({fromTrackId: track.get('_id'), toTrackId}));
   };
 
   const onDelete = ({track}) => dispatch(LibraryActions.deleteTrack({track}));
@@ -262,9 +271,11 @@ const Queues = () => {
         <option>+ new queue</option>
       </select>
       <TrackList
-        tracks={queue.get('tracks')}
         onSortEnd={sortEnd}
+        distance={3}
+        tracks={queue.get('tracks')}
         onDelete={onDelete}
+        onBump={onBump}
       />
       <div
         {...getRootProps()}
