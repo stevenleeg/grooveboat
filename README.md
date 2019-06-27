@@ -1,6 +1,8 @@
 # 💃🛥️ Grooveboat
 _Live (and soon-to-be peer to peer) DJing with your friends._
 
+![screenshot](https://imgur.com/DEmL3au.png)
+
 ## What's this?
 Grooveboat is an open-source clone of the late [Turntable.fm](https://en.wikipedia.org/wiki/Turntable.fm).
 From wikipedia:
