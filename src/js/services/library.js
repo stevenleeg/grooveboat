@@ -163,9 +163,11 @@ const callbacks = [
       const fromIndex = trackIds.indexOf(fromTrackId);
       const toIndex = trackIds.indexOf(toTrackId);
 
-      return s
-        .setIn(['selectedQueue', 'trackIds', fromIndex], toTrackId)
-        .setIn(['selectedQueue', 'trackIds', toIndex], fromTrackId);
+      const updatedTrackIds = trackIds
+        .delete(fromIndex)
+        .insert(toIndex, fromTrackId);
+
+      return s.setIn(['selectedQueue', 'trackIds'], updatedTrackIds);
     },
   },
   {
