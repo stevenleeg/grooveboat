@@ -24,6 +24,9 @@ import {
 import {
   Selectors as JukeboxSelectors,
 } from '../../services/jukebox';
+import {
+  Actions as ToasterActions,
+} from '../../services/toaster';
 import {LoadingState, ErrorState} from '../../components/bigstates';
 import {Actions} from './data';
 
@@ -241,6 +244,9 @@ const Queues = () => {
   //
   const dispatch = useDispatch();
   const queue = useSelector(LibrarySelectors.selectedQueueWithTracks);
+  const room = useSelector(RoomSelectors.currentRoom);
+  const peerId = useSelector(BuoySelectors.peerId);
+  const isDj = room.get('djs').indexOf(peerId) !== -1;
 
   ////
   // Action callbacks
@@ -264,7 +270,19 @@ const Queues = () => {
     dispatch(LibraryActions.swapTrackOrder({fromTrackId: track.get('_id'), toTrackId}));
   };
 
-  const onDelete = ({track}) => dispatch(LibraryActions.deleteTrack({track}));
+  const onDelete = ({track}) => {
+    // Don't let users delete their only track if they're an active DJ
+    if (isDj && queue.get('tracks').count() === 1) {
+      dispatch(ToasterActions.notify({
+        title: 'no can do',
+        message: 'you can\'t delete your only track while you\'re a dj',
+        icon: '🤔',
+      }));
+      return;
+    }
+
+    dispatch(LibraryActions.deleteTrack({track}));
+  };
 
   ////
   // Render
