@@ -40,6 +40,16 @@ const RoomSelectorPage = ({history}) => {
 
   useEffect(() => {
     dispatch(Actions.init());
+
+    // If we have a code in the URL let's go ahead and fire things up
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteCode = urlParams.get('code');
+    if (inviteCode) {
+      dispatch(Actions.joinBuoy({
+        inviteCode,
+        callback: () => setScreen(SCREEN_DEFAULT),
+      }));
+    }
   }, []);
 
   useEffect(() => {
