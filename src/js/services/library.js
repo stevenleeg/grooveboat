@@ -98,6 +98,7 @@ export const Actions = {
 //
 const initialState = Immutable.fromJS({
   selectedQueue: null,
+  addingTrack: false,
   tracks: {},
 });
 
@@ -109,9 +110,17 @@ const callbacks = [
     },
   },
   {
+    actionType: ActionTypes.ADD_TRACK,
+    callback: (s) => {
+      return s.merge({addingTrack: true});
+    },
+  },
+  {
     actionType: ActionTypes.ADD_TRACK_SUCCESS,
     callback: (s, {track}) => {
-      return s.setIn(['tracks', track.get('_id')], track);
+      return s
+        .setIn(['tracks', track.get('_id')], track)
+        .merge({addingTrack: false});
     },
   },
   {
@@ -194,6 +203,9 @@ export const Selectors = {
       .filter(track => !!track);
 
     return queue.merge({tracks});
+  },
+  addingTrack: (s) => {
+    return s.getIn(['services', 'library', 'addingTrack']);
   },
 };
 

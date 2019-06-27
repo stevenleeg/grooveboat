@@ -298,6 +298,27 @@ $nowplaying-height: 85px;
     border: 2px dashed $color-blue;
     color: $color-blue;
   }
+
+  &.disabled {
+    animation: working 1s infinite;
+  }
+}
+
+@keyframes working {
+  0% {
+    border: 2px dashed $color-border;
+    color: $color-alt-text;
+  }
+
+  50% {
+    border: 2px dashed $color-blue;
+    color: $color-blue;
+  }
+
+  100% {
+    border: 2px dashed $color-border;
+    color: $color-alt-text;
+  }
 }
 
 .queues--tracks {

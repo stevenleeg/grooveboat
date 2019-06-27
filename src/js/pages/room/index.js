@@ -246,12 +246,16 @@ const Queues = () => {
   const queue = useSelector(LibrarySelectors.selectedQueueWithTracks);
   const room = useSelector(RoomSelectors.currentRoom);
   const peerId = useSelector(BuoySelectors.peerId);
+  const isAddingTrack = useSelector(LibrarySelectors.addingTrack);
   const isDj = room.get('djs').indexOf(peerId) !== -1;
 
   ////
   // Action callbacks
   //
   const onDrop = (files) => {
+    // Don't process two tracks at once
+    if (isAddingTrack) return;
+
     files.forEach((file) => {
       dispatch(LibraryActions.addTrack({file}));
     });
@@ -288,6 +292,14 @@ const Queues = () => {
   // Render
   //
   const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
+
+  let dropText = 'drop a song';
+  if (isAddingTrack) {
+    dropText = 'reticulating splines...';
+  } else if (isDragActive) {
+    dropText = 'that\'s it, drop it!';
+  }
+
   return (
     <div className="sidebar--queues">
       <select>
@@ -304,17 +316,18 @@ const Queues = () => {
         />
       )}
       {queue.get('tracks').count() === 0 && (
-        <div className="queues--no-tracks"><p>drop some mp3s</p></div>
+        <div className="queues--no-tracks"><p>nothing yet</p></div>
       )}
       <div
         {...getRootProps()}
         className={classNames({
           'queues--dropzone': true,
           active: isDragActive,
+          disabled: isAddingTrack,
         })}
       >
         <input {...getInputProps()} />
-        {isDragActive ? <Fragment>that's it, drop it!</Fragment> : <Fragment>drop a song</Fragment>}
+        <Fragment>{dropText}</Fragment>
       </div>
     </div>
   );
