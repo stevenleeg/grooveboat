@@ -294,13 +294,18 @@ const Queues = () => {
         <option>default</option>
         <option>+ new queue</option>
       </select>
-      <TrackList
-        onSortEnd={sortEnd}
-        distance={3}
-        tracks={queue.get('tracks')}
-        onDelete={onDelete}
-        onBump={onBump}
-      />
+      {queue.get('tracks').count() > 0 && (
+        <TrackList
+          onSortEnd={sortEnd}
+          distance={3}
+          tracks={queue.get('tracks')}
+          onDelete={onDelete}
+          onBump={onBump}
+        />
+      )}
+      {queue.get('tracks').count() === 0 && (
+        <div className="queues--no-tracks"><p>drop some mp3s</p></div>
+      )}
       <div
         {...getRootProps()}
         className={classNames({

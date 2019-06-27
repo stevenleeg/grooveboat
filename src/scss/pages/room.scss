@@ -272,6 +272,18 @@ $nowplaying-height: 85px;
   }
 }
 
+.queues--no-tracks {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+
+  p {
+    font-size: 24px;
+    color: $color-alt-text;
+  }
+}
+
 .queues--dropzone {
   border: 2px dashed $color-border;
   padding: 25px;
