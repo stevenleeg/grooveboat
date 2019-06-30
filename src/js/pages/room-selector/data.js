@@ -28,27 +28,6 @@ export const Actions = {
 ////
 // Sagas
 //
-function* init() {
-  yield put(BuoyActions.fetchBuoys());
-
-  const {buoys} = yield take(BuoyActionTypes.FETCH_BUOYS_SUCCESS);
-  if (buoys.count() === 0) {
-    return;
-  }
-
-  yield put(BuoyActions.connect({buoy: buoys.get(0)}));
-  const {type} = yield take([
-    BuoyActionTypes.CONNECT_SUCCESS,
-    BuoyActionTypes.CONNECT_FAILURE,
-  ]);
-
-  if (type === BuoyActionTypes.CONNECT_FAILURE) {
-    return;
-  }
-
-  yield put(RoomActions.fetchAll());
-}
-
 function* joinBuoy({inviteCode, callback}) {
   yield put(BuoyActions.join({inviteCode}));
 
@@ -63,7 +42,35 @@ function* joinBuoy({inviteCode, callback}) {
 
   // Fetch the rooms in the buoy
   yield put(RoomActions.fetchAll());
-  yield call(callback);
+  if (callback) {
+    yield call(callback);
+  }
+}
+
+function* init() {
+  yield put(BuoyActions.fetchBuoys());
+
+  const {buoys} = yield take(BuoyActionTypes.FETCH_BUOYS_SUCCESS);
+  if (buoys.count() === 0 && process.env.DEFAULT_INVITE) {
+    // Do we have a default buoy to go with?
+    yield* joinBuoy({inviteCode: process.env.DEFAULT_INVITE});
+    return;
+  }
+  if (buoys.count() === 0 && !process.env.DEFAULT_INVITE) {
+    return;
+  }
+
+  yield put(BuoyActions.connect({buoy: buoys.get(0)}));
+  const {type} = yield take([
+    BuoyActionTypes.CONNECT_SUCCESS,
+    BuoyActionTypes.CONNECT_FAILURE,
+  ]);
+
+  if (type === BuoyActionTypes.CONNECT_FAILURE) {
+    return;
+  }
+
+  yield put(RoomActions.fetchAll());
 }
 
 function* createRoom({name, callback}) {

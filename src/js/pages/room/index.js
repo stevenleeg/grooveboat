@@ -704,7 +704,9 @@ const RoomPage = ({history, match}) => {
 
     return () => {
       // Leave the room when the component unmounts
-      dispatch(RoomActions.leaveRoom());
+      if (connectedBuoy) {
+        dispatch(RoomActions.leaveRoom());
+      }
     };
   }, []);
 
