@@ -644,7 +644,7 @@ const EditProfileSettings = ({onClose}) => {
 
 const SETTINGS_SCREEN_MENU = 'menu';
 const SETTINGS_SCREEN_EDIT_PROFILE = 'edit-profile';
-const Settings = ({open, onClose}) => {
+const Settings = withRouter(({open, onClose, history}) => {
   ////
   // Hooks
   //
@@ -664,6 +664,7 @@ const Settings = ({open, onClose}) => {
             <li onClick={() => window.open('https://github.com/stevenleeg/grooveboat/issues', '_blank')}>
               report a bug
             </li>
+            <li onClick={() => history.push('/')}>leave room</li>
           </ul>
         </div>
       )}
@@ -674,7 +675,7 @@ const Settings = ({open, onClose}) => {
       )}
     </div>
   );
-};
+});
 
 const RoomPage = ({history, match}) => {
   ////
