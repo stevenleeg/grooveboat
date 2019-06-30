@@ -28,6 +28,10 @@ export const ActionTypes = {
   JOIN_ROOM_SUCCESS: 'services/rooms/join_room_success',
   JOIN_ROOM_FAILURE: 'services/rooms/join_room_failure',
 
+  LEAVE_ROOM: 'services/rooms/leave_room',
+  LEAVE_ROOM_SUCCESS: 'services/rooms/leave_room_success',
+  LEAVE_ROOM_ERROR: 'services/rooms/leave_room_error',
+
   SET_PEERS: 'services/rooms/set_peers',
 
   BECOME_DJ: 'services/rooms/become_dj',
@@ -74,6 +78,10 @@ export const Actions = {
   joinRoom: createAction(ActionTypes.JOIN_ROOM, 'id'),
   joinRoomSuccess: createAction(ActionTypes.JOIN_ROOM_SUCCESS, 'room'),
   joinRoomFailure: createAction(ActionTypes.JOIN_ROOM_FAILURE, 'message'),
+
+  leaveRoom: createAction(ActionTypes.LEAVE_ROOM),
+  leaveRoomSuccess: createAction(ActionTypes.LEAVE_ROOM_SUCCESS),
+  leaveRoomFailure: createAction(ActionTypes.LEAVE_ROOM_FAILURE, 'message'),
 
   becomeDj: createAction(ActionTypes.BECOME_DJ),
   becomeDjSuccess: createAction(ActionTypes.BECOME_DJ_SUCCESS),
@@ -489,10 +497,22 @@ function* skipTurn() {
   yield put(Actions.skipTurnSuccess());
 }
 
+function* leaveRoom() {
+  const resp = yield call(send, {name: 'leaveRoom'});
+
+  if (resp.error) {
+    yield put(Actions.leaveRoomFailure({message: resp.message}));
+    return;
+  }
+
+  yield put(Actions.leaveRoomSuccess());
+}
+
 export function* Saga() {
   yield takeEvery(ActionTypes.FETCH_ALL, fetchAll);
   yield takeEvery(ActionTypes.CREATE_ROOM, createRoom);
   yield takeEvery(ActionTypes.JOIN_ROOM, joinRoom);
+  yield takeEvery(ActionTypes.LEAVE_ROOM, leaveRoom);
   yield takeEvery(ActionTypes.BECOME_DJ, becomeDj);
   yield takeEvery(ActionTypes.STEP_DOWN, stepDown);
   yield takeEvery(ActionTypes.SEND_CHAT, sendChat);

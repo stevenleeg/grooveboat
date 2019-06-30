@@ -698,6 +698,11 @@ const RoomPage = ({history, match}) => {
         setError(message);
       },
     }));
+
+    return () => {
+      // Leave the room when the component unmounts
+      dispatch(RoomActions.leaveRoom());
+    };
   }, []);
 
   useEffect(() => {
