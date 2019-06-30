@@ -36,6 +36,7 @@ export const ActionTypes = {
   TRACK_CAN_PLAY: 'services/jukebox/track_can_play',
   TRACK_SEEKED: 'services/jukebox/track_seeked',
   SET_VOTES: 'services/jukebox/set_votes',
+  SET_MUTE: 'services/jukebox/set_mute',
 };
 
 export const Actions = {
@@ -47,6 +48,7 @@ export const Actions = {
   trackCanPlay: createAction(ActionTypes.TRACK_CAN_PLAY),
   trackSeeked: createAction(ActionTypes.TRACK_SEEKED),
   setVotes: createAction(ActionTypes.SET_VOTES, 'votes'),
+  setMute: createAction(ActionTypes.SET_MUTE, 'mute'),
 };
 
 ////
@@ -55,6 +57,7 @@ export const Actions = {
 const initialState = Immutable.fromJS({
   currentTrack: null,
   loadingTrack: false,
+  mute: false,
 });
 
 const callbacks = [
@@ -85,6 +88,12 @@ const callbacks = [
       return s.setIn(['currentTrack', 'votes'], votes);
     },
   },
+  {
+    actionType: ActionTypes.SET_MUTE,
+    callback: (s, {value}) => {
+      return s.merge({mute: value});
+    },
+  },
 ];
 
 export const Reducers = {initialState, callbacks};
@@ -94,6 +103,7 @@ export const Reducers = {initialState, callbacks};
 //
 const store = s => s.getIn(['services', 'jukebox']);
 const currentTrack = s => store(s).get('currentTrack');
+const mute = s => store(s).get('mute');
 const loadingTrack = s => store(s).get('loadingTrack');
 const voteCounts = (s) => {
   const track = currentTrack(s);
@@ -115,6 +125,7 @@ export const Selectors = {
   currentTrack,
   voteCounts,
   loadingTrack,
+  mute,
 };
 
 ///
@@ -170,6 +181,12 @@ function* playTrack({startedAt, track}) {
     autoplay: false,
   });
 
+  // Should we mute?
+  const shouldMute = yield select(mute);
+  if (shouldMute) {
+    player.mute(true);
+  }
+
   // Useful for debugging
   window.player = player;
 
@@ -224,10 +241,17 @@ function* stopTrack() {
   player.stop();
 }
 
+function setMute({value}) {
+  if (player) {
+    player.mute(value);
+  }
+}
+
 export function* Saga() {
   yield takeEvery(ActionTypes.PLAY_TRACK, playTrack);
   yield takeEvery(ActionTypes.TRACK_ENDED, trackEnded);
   yield takeEvery(ActionTypes.STOP_TRACK, stopTrack);
+  yield takeEvery(ActionTypes.SET_MUTE, setMute);
 
   yield* rpcToAction('playTrack', Actions.playTrack);
   yield* rpcToAction('setVotes', Actions.setVotes);

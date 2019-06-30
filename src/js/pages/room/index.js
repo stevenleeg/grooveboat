@@ -23,6 +23,7 @@ import {
 } from '../../services/library';
 import {
   Selectors as JukeboxSelectors,
+  Actions as JukeboxActions,
 } from '../../services/jukebox';
 import {
   Actions as ToasterActions,
@@ -685,6 +686,7 @@ const RoomPage = ({history, match}) => {
   const connectedBuoy = useSelector(BuoySelectors.connectedBuoy);
   const isFetchingBuoys = useSelector(BuoySelectors.isFetching);
   const buoys = useSelector(BuoySelectors.buoys);
+  const muted = useSelector(JukeboxSelectors.mute);
 
   const dispatch = useDispatch();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -737,7 +739,13 @@ const RoomPage = ({history, match}) => {
         </div>
       </div>
       <div
-        className={classNames(['room--settings-bubble', {open: settingsOpen}])}
+        className="room--bubble room--mute-bubble"
+        onClick={() => dispatch(JukeboxActions.setMute({value: !muted}))}
+      >
+        <FontAwesomeIcon icon={muted ? Icon.faVolumeOff : Icon.faVolumeUp} />
+      </div>
+      <div
+        className={classNames(['room--bubble', 'room--settings-bubble', {open: settingsOpen}])}
         onClick={() => setSettingsOpen(!settingsOpen)}
       >
         <FontAwesomeIcon icon={settingsOpen ? Icon.faTimes : Icon.faCog} />
