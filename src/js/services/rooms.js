@@ -20,6 +20,8 @@ export const ActionTypes = {
   FETCH_ALL: 'services/rooms/fetch_all',
   FETCH_ALL_SUCCESS: 'services/rooms/fetch_all_success',
 
+  SET_ROOMS: 'services/rooms/set_rooms',
+
   CREATE_ROOM: 'services/rooms/create_room',
   CREATE_ROOM_SUCCESS: 'services/rooms/create_room_success',
   CREATE_ROOM_FAILURE: 'services/rooms/create_room_failure',
@@ -70,6 +72,8 @@ export const ActionTypes = {
 export const Actions = {
   fetchAll: createAction(ActionTypes.FETCH_ALL),
   fetchAllSuccess: createAction(ActionTypes.FETCH_ALL_SUCCESS, 'rooms'),
+
+  setRooms: createAction(ActionTypes.SET_ROOMS, 'rooms'),
 
   createRoom: createAction(ActionTypes.CREATE_ROOM, 'name'),
   createRoomSuccess: createAction(ActionTypes.CREATE_ROOM_SUCCESS, 'room'),
@@ -140,9 +144,13 @@ const callbacks = [
   {
     actionType: ActionTypes.FETCH_ALL_SUCCESS,
     callback: (state, {rooms}) => {
-      return state
-        .set('saved', false)
-        .merge({rooms});
+      return state.merge({rooms});
+    },
+  },
+  {
+    actionType: ActionTypes.SET_ROOMS,
+    callback: (state, {rooms}) => {
+      return state.merge({rooms});
     },
   },
   {
@@ -541,4 +549,5 @@ export function* Saga() {
   yield* rpcToAction('newChatMsg', Actions.newChatMessage);
   yield* rpcToAction('setPeerProfile', Actions.setPeerProfile);
   yield* rpcToAction('setSkipWarning', Actions.setSkipWarning);
+  yield* rpcToAction('setRooms', Actions.setRooms);
 }
