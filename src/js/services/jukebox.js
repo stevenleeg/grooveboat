@@ -54,7 +54,6 @@ export const Actions = {
 //
 const initialState = Immutable.fromJS({
   currentTrack: null,
-  trackStartedAt: null,
   loadingTrack: false,
 });
 
@@ -135,7 +134,6 @@ function* syncTrack() {
   const startedAt = track.get('startedAt');
 
   // Give some time to buffer
-  const TRACK_DELAY = 1; // in seconds
   while (true) {
     // Make sure the track is the same
     track = yield select(currentTrack);
@@ -144,10 +142,11 @@ function* syncTrack() {
     }
 
     const now = (+new Date()) / 1000;
-    const seekTo = (now - (startedAt + TRACK_DELAY));
+    const seekTo = (now - (startedAt));
     // If we're more than 1.5 seconds off let's do a quick seek
-    if (Math.abs(player.seek() - seekTo) > 1.5) {
-      console.log('syncing playhead'); // eslint-disable-line no-console
+    const diff = Math.abs(player.seek() - seekTo);
+    if (diff > 1.5) {
+      console.log(`syncing playhead (diff: ${diff}`); // eslint-disable-line no-console
       player.pause(currentId);
       player.seek(seekTo, currentId);
       player.play(currentId);
@@ -156,7 +155,7 @@ function* syncTrack() {
   }
 }
 
-function* playTrack({track}) {
+function* playTrack({startedAt, track}) {
   // Try to prevent two tracks from overlapping
   if (player !== null) {
     yield cancel(player.endTask);
@@ -168,6 +167,7 @@ function* playTrack({track}) {
     src: [track.get('url')],
     format: ['mp3'],
     html5: false,
+    autoplay: false,
   });
 
   // Useful for debugging
@@ -193,15 +193,23 @@ function* playTrack({track}) {
     return;
   }
 
+  // The server will give us 4 seconds of buffer to download the track, so if
+  // we end early let's delay for a bit so we don't need to seek
+  const now = (+new Date()) / 1000;
+  if (now - startedAt < 0) {
+    yield delay((startedAt - now) * 1000);
+  }
+
   yield put(Actions.playTrackSuccess({
     track: track.merge({
       duration: player.duration(),
+      startedAt,
     }),
   }));
 
+  currentId = player.play();
   player.endTask = yield fork(listenForEnd);
   player.syncTask = yield fork(syncTrack);
-  currentId = player.play();
 }
 
 function* trackEnded() {
