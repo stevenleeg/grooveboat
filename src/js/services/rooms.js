@@ -159,6 +159,21 @@ const callbacks = [
     },
   },
   {
+    actionType: ActionTypes.LEAVE_ROOM_SUCCESS,
+    callback: (s) => {
+      return s.merge(Immutable.fromJS({
+        rooms: [],
+        chat: {
+          messages: [],
+          sendingMessage: false,
+          newMessage: '',
+        },
+        currentRoom: null,
+        profiles: {},
+      }));
+    },
+  },
+  {
     actionType: ActionTypes.SET_PEERS,
     callback: (s, {peers}) => {
       // Extract out the profiles to put into a map that we can reference
