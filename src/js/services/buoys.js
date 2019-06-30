@@ -90,6 +90,9 @@ export const Actions = {
 const initialState = Immutable.fromJS({
   connecting: false,
   connectedBuoy: null,
+  // The application will always fetch the buoy list when it initializes, so
+  // let's default this to true
+  fetching: true,
   buoys: [],
   peerId: null,
 });
@@ -145,12 +148,16 @@ const callbacks = [
   },
 
   {
+    actionType: ActionTypes.FETCH_BUOYS,
+    callback: s => s.merge({fetching: true}),
+  },
+  {
     actionType: ActionTypes.FETCH_BUOYS_SUCCESS,
-    callback: (s, {buoys}) => s.merge({buoys}),
+    callback: (s, {buoys}) => s.merge({buoys, fetching: false}),
   },
   {
     actionType: ActionTypes.SET_BUOYS,
-    callback: (s, {buoys}) => s.merge({buoys}),
+    callback: (s, {buoys}) => s.merge({buoys, fetching: false}),
   },
 ];
 
@@ -163,6 +170,7 @@ export const Selectors = {
   store: s => s.getIn(['services', 'buoys']),
   buoys: s => s.getIn(['services', 'buoys', 'buoys']),
   connectedBuoy: s => s.getIn(['services', 'buoys', 'connectedBuoy']),
+  isFetching: s => s.getIn(['services', 'buoys', 'fetching']),
   isConnecting: s => s.getIn(['services', 'buoys', 'connecting']),
   peerId: s => s.getIn(['services', 'buoys', 'peerId']),
 };

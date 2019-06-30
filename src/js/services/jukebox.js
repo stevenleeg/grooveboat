@@ -45,15 +45,17 @@ export const Actions = {
 //
 const initialState = Immutable.fromJS({
   currentTrack: null,
+  trackStartedAt: null,
 });
 
 const callbacks = [
   {
     actionType: ActionTypes.PLAY_TRACK,
-    callback: (s, {track, votes}) => {
+    callback: (s, {track, votes, startedAt}) => {
       return s
         .merge({currentTrack: track})
-        .setIn(['currentTrack', 'votes'], votes);
+        .setIn(['currentTrack', 'votes'], votes)
+        .setIn(['currentTrack', 'startedAt'], startedAt);
     },
   },
   {
@@ -108,7 +110,42 @@ function* listenForEnd() {
   yield put(Actions.trackEnded({track}));
 }
 
-function* playTrack({startedAt, track}) {
+// Syncs the current track's playhead with the server-provided started at time
+function* syncTrack() {
+  let track = yield select(currentTrack);
+  const trackId = track.get('id');
+  const startedAt = track.get('startedAt');
+
+  // Give some time to buffer
+  const TRACK_DELAY = 1; // in seconds
+  while (true) {
+    // Make sure the track is the same
+    track = yield select(currentTrack);
+    if (!track || track.get('id') !== trackId) {
+      return;
+    }
+
+    const now = (+new Date()) / 1000;
+    const seekTo = (now - (startedAt + TRACK_DELAY));
+    // If we're more than 1.5 seconds off let's do a quick seek
+    if (Math.abs(player.seek() - seekTo) > 1.5) {
+      console.log('syncing playhead');
+      player.pause(currentId);
+      player.seek(seekTo, currentId);
+      player.play(currentId);
+    }
+    yield delay(3000);
+  }
+}
+
+function* playTrack({track}) {
+  // Try to prevent two tracks from overlapping
+  if (player !== null) {
+    yield cancel(player.endTask);
+    yield cancel(player.syncTask);
+    player.stop();
+  }
+
   player = new Howl({
     src: [track.get('url')],
     format: ['mp3'],
@@ -118,48 +155,21 @@ function* playTrack({startedAt, track}) {
   // Useful for debugging
   window.player = player;
 
-  // Delay for 3 seconds to buffer the track
-  const BUFFER = 3;
-  yield delay(BUFFER * 1000);
-
-  // Make sure we're still streaming this track, as there's a chance
-  // stopTrack has been called while we were sleeping
-  track = yield select(currentTrack);
-  if (!track) {
-    return;
-  }
-
-  player.task = yield fork(listenForEnd);
+  player.endTask = yield fork(listenForEnd);
+  player.syncTask = yield fork(syncTrack);
   currentId = player.play();
-
-  // Schedule four syncing events
-  yield delay(350);
-  for (let i = 0; i < 4; i += 1) {
-    // Do another check
-    track = yield select(currentTrack);
-    if (!track) {
-      return;
-    }
-
-    const now = (+new Date()) / 1000;
-    const seekTo = (now - (startedAt + BUFFER));
-    if (Math.abs(player.seek() - seekTo) > 1.5) {
-      player.pause(currentId);
-      player.seek(seekTo, currentId);
-      player.play(currentId);
-    }
-    yield delay(3000);
-  }
 }
 
 function* trackEnded() {
-  yield cancel(player.task);
+  yield cancel(player.endTask);
+  yield cancel(player.syncTask);
   yield call(send, {name: 'trackEnded'});
 }
 
 function* stopTrack() {
-  yield cancel(player.task);
-  player.pause();
+  yield cancel(player.endTask);
+  yield cancel(player.syncTask);
+  player.stop();
 }
 
 export function* Saga() {

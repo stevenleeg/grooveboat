@@ -636,12 +636,15 @@ const Settings = ({open, onClose}) => {
   );
 };
 
-const RoomPage = ({match}) => {
+const RoomPage = ({history, match}) => {
   ////
   // Hooks
   //
   const isConnecting = useSelector(BuoySelectors.isConnecting);
   const connectedBuoy = useSelector(BuoySelectors.connectedBuoy);
+  const isFetchingBuoys = useSelector(BuoySelectors.isFetching);
+  const buoys = useSelector(BuoySelectors.buoys);
+
   const dispatch = useDispatch();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [error, setError] = useState(null);
@@ -656,6 +659,13 @@ const RoomPage = ({match}) => {
       },
     }));
   }, []);
+
+  useEffect(() => {
+    // Redirect to index if we didn't find any buoys
+    if (isFetchingBuoys === false && buoys.count() === 0) {
+      history.push('/');
+    }
+  }, [isFetchingBuoys]);
 
   ////
   // Rendering
