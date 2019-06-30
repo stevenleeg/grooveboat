@@ -1,5 +1,5 @@
 $sidebar-width: 300px;
-$nowplaying-height: 85px;
+$nowplaying-height: 102px;
 
 .room--container {
   display: flex;
@@ -122,7 +122,6 @@ $nowplaying-height: 85px;
 }
 
 .nowplaying {
-  @include fancy-font;
   width: 100%;
   height: $nowplaying-height;
   font-size: 32px;
@@ -140,6 +139,7 @@ $nowplaying-height: 85px;
   }
 
   .song {
+    @include fancy-font;
     flex: 1;
     text-overflow: hidden;
     white-space: nowrap;
@@ -186,6 +186,55 @@ $nowplaying-height: 85px;
       text-shadow: 0px 0px 25px $color-red;
       transform: scaleX(-1) translateY(7px) rotate(6deg);
     }
+  }
+}
+
+.nowplaying--bar {
+  height: 20px;
+  width: 100%;
+  position: relative;
+
+  .loading-track {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background: $color-blue;
+    width: 40px;
+    height: 20px;
+    animation: loading-track 3s infinite;
+  }
+  
+  .progress {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background: lighten($color-dark-gray, 10%);
+    height: 20px;
+    transition: 150ms;
+  }
+
+  .bar-text {
+    position: absolute;
+    left: 15px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 14px;
+    flex: 1;
+    z-index: 500;
+  }
+}
+
+@keyframes loading-track {
+  0% {
+    transform: translateX(0px);
+  }
+
+  50% {
+    transform: translateX(calc(100vw - 40px));
+  }
+
+  100% {
+    transform: translateX(0px);
   }
 }
 

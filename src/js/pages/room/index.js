@@ -29,6 +29,8 @@ import {
 } from '../../services/toaster';
 import {LoadingState, ErrorState} from '../../components/bigstates';
 import {Actions} from './data';
+import {useInterval} from '../../utils/react';
+import {lpad} from '../../utils/strings';
 
 import BoatImageURL from '../../../assets/img/boat.png';
 import ChatImageURL from '../../../assets/img/chat.png';
@@ -38,10 +40,18 @@ const NowPlaying = () => {
   // Hooks
   //
   const currentTrack = useSelector(JukeboxSelectors.currentTrack);
+  const loadingTrack = useSelector(JukeboxSelectors.loadingTrack);
   const dispatch = useDispatch();
   const currentPeerId = useSelector(BuoySelectors.peerId);
   const room = useSelector(RoomSelectors.currentRoom);
   const activeDjId = room.get('activeDj');
+  const [seek, setSeek] = useState(0);
+
+  useInterval(() => {
+    if (window.player) {
+      setSeek(window.player.seek());
+    }
+  }, 1000);
 
   ////
   // Action callbacks
@@ -63,6 +73,20 @@ const NowPlaying = () => {
   const currentPeerVote = currentTrack ? currentTrack.getIn(['votes', currentPeerId]) : null;
   const isVotingDisabled = !currentTrack || activeDjId === currentPeerId;
 
+  let durationMinutes = 0;
+  let durationSeconds = 0;
+  let seekMinutes = 0;
+  let seekSeconds = 0;
+  let progressPerc = 0;
+  if (currentTrack) {
+    durationMinutes = lpad(Math.floor(currentTrack.get('duration') / 60), '0', 2);
+    durationSeconds = lpad(Math.floor(currentTrack.get('duration')) - (durationMinutes * 60), '0', 2);
+    seekMinutes = lpad(Math.floor(seek / 60), '0', 2);
+    seekSeconds = lpad(Math.floor(seek) - (seekMinutes * 60), '0', 2);
+
+    progressPerc = Math.floor(seek / currentTrack.get('duration') * 100);
+  }
+
   return (
     <div className="nowplaying">
       <div className="nowplaying--content">
@@ -79,6 +103,22 @@ const NowPlaying = () => {
           isToggled={currentPeerVote === false}
           onClick={() => vote(false)}
         />
+      </div>
+      <div className="nowplaying--bar">
+        {(currentTrack && loadingTrack) && (
+          <Fragment>
+            <div className="loading-track" />
+            <div className="bar-text">loading...</div>
+          </Fragment>
+        )}
+        {(currentTrack && !loadingTrack) && (
+          <Fragment>
+            <div className="progress" style={{width: `${progressPerc}%`}} />
+            <div className="bar-text">
+              {`${seekMinutes}:${seekSeconds} / ${durationMinutes}:${durationSeconds}`}
+            </div>
+          </Fragment>
+        )}
       </div>
     </div>
   );

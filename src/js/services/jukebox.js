@@ -1,9 +1,10 @@
 import Immutable from 'immutable';
-import {takeEvery, fork, call, select, put, cancel, delay} from 'redux-saga/effects';
+import {takeEvery, fork, take, race, call, select, put, cancel, delay} from 'redux-saga/effects';
 import {Howl} from 'howler';
 
 import {createAction} from '../utils/redux';
 import {send, rpcToAction} from './buoys';
+import {Actions as ToasterActions} from './toaster';
 
 ////
 // Helpers
@@ -17,12 +18,19 @@ const awaitEnd = () => {
   });
 };
 
+const awaitLoad = () => {
+  return new Promise((resolve) => {
+    player.once('load', () => resolve());
+  });
+};
+
 ////
 // Actions
 //
 export const ActionTypes = {
   PLAY_TRACK: 'services/jukebox/play_track',
   PLAY_TRACK_FAILURE: 'services/jukebox/play_track_failure',
+  PLAY_TRACK_SUCCESS: 'services/jukebox/play_track_success',
   STOP_TRACK: 'services/jukebox/stop_track',
   TRACK_ENDED: 'services/jukebox/track_ended',
   TRACK_CAN_PLAY: 'services/jukebox/track_can_play',
@@ -33,6 +41,7 @@ export const ActionTypes = {
 export const Actions = {
   playTrack: createAction(ActionTypes.PLAY_TRACK, 'track'),
   playTrackFailure: createAction(ActionTypes.PLAY_TRACK_FAILURE, 'message'),
+  playTrackSuccess: createAction(ActionTypes.PLAY_TRACK_SUCCESS, 'track'),
   stopTrack: createAction(ActionTypes.STOP_TRACK),
   trackEnded: createAction(ActionTypes.TRACK_ENDED, 'track'),
   trackCanPlay: createAction(ActionTypes.TRACK_CAN_PLAY),
@@ -46,6 +55,7 @@ export const Actions = {
 const initialState = Immutable.fromJS({
   currentTrack: null,
   trackStartedAt: null,
+  loadingTrack: false,
 });
 
 const callbacks = [
@@ -53,9 +63,15 @@ const callbacks = [
     actionType: ActionTypes.PLAY_TRACK,
     callback: (s, {track, votes, startedAt}) => {
       return s
-        .merge({currentTrack: track})
+        .merge({currentTrack: track, loadingTrack: true})
         .setIn(['currentTrack', 'votes'], votes)
         .setIn(['currentTrack', 'startedAt'], startedAt);
+    },
+  },
+  {
+    actionType: ActionTypes.PLAY_TRACK_SUCCESS,
+    callback: (s, {track}) => {
+      return s.merge({currentTrack: track, loadingTrack: false});
     },
   },
   {
@@ -79,6 +95,7 @@ export const Reducers = {initialState, callbacks};
 //
 const store = s => s.getIn(['services', 'jukebox']);
 const currentTrack = s => store(s).get('currentTrack');
+const loadingTrack = s => store(s).get('loadingTrack');
 const voteCounts = (s) => {
   const track = currentTrack(s);
   if (!track || !track.get('votes')) {
@@ -98,6 +115,7 @@ export const Selectors = {
   store,
   currentTrack,
   voteCounts,
+  loadingTrack,
 };
 
 ///
@@ -129,7 +147,7 @@ function* syncTrack() {
     const seekTo = (now - (startedAt + TRACK_DELAY));
     // If we're more than 1.5 seconds off let's do a quick seek
     if (Math.abs(player.seek() - seekTo) > 1.5) {
-      console.log('syncing playhead');
+      console.log('syncing playhead'); // eslint-disable-line no-console
       player.pause(currentId);
       player.seek(seekTo, currentId);
       player.play(currentId);
@@ -154,6 +172,32 @@ function* playTrack({track}) {
 
   // Useful for debugging
   window.player = player;
+
+  const {timeout, canceled} = yield race({
+    timeout: delay(25 * 1000),
+    loaded: call(awaitLoad),
+    canceled: take(ActionTypes.PLAY_TRACK),
+  });
+
+  if (timeout) {
+    yield put(ToasterActions.notify({
+      title: 'timeout',
+      message: 'looks like this track isn\'t loading properly. hang tight or refresh.',
+      icon: '🤔',
+    }));
+    return;
+  }
+  if (canceled) {
+    // Some other track started getting played before we had a chance to load
+    // this one
+    return;
+  }
+
+  yield put(Actions.playTrackSuccess({
+    track: track.merge({
+      duration: player.duration(),
+    }),
+  }));
 
   player.endTask = yield fork(listenForEnd);
   player.syncTask = yield fork(syncTrack);
