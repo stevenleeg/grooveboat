@@ -179,6 +179,10 @@ function* syncTrack() {
 }
 
 function setOnDeck({track}) {
+  if (!track) {
+    return;
+  }
+
   onDeckPlayer = new Howl({
     src: [track.get('url')],
     format: ['mp3'],
@@ -226,14 +230,15 @@ function* playTrack({startedAt, track}) {
       }));
     });
 
-    const {canceled} = yield race({
+    const {canceled, stopped} = yield race({
       loaded: call(awaitLoad),
       canceled: take(ActionTypes.PLAY_TRACK),
+      stopped: take(ActionTypes.STOP_TRACK),
     });
 
     yield cancel(timeoutTask);
 
-    if (canceled) {
+    if (canceled || stopped) {
       // Some other track started getting played before we had a chance to load
       // this one
       return;
