@@ -5,7 +5,7 @@ import uuid from 'uuid/v1';
 
 import db from '../db';
 import {createAction} from '../utils/redux';
-import {rpcToAction} from './buoys';
+import {rpcToAction, send} from './buoys';
 
 const readTags = ({file}) => {
   return new Promise((resolve, reject) => {
@@ -251,6 +251,11 @@ function* init() {
   }
 }
 
+// Lets the buoy know that we've updated our queue (in case we're on deck)
+function* notifyBuoy() {
+  yield call(send, {name: 'updatedQueue'});
+}
+
 function* addTrack({file}) {
   let tags = {};
   const fallbackName = file.name.split('.').slice(0, -1).join('.');
@@ -359,6 +364,8 @@ function* requestTrack({callback}) {
 }
 
 function* deleteTrack({track}) {
+  yield call(notifyBuoy);
+
   // Remove the track from all queues
   const queues = yield call(db.get, 'queues');
   for (const queueId of queues.get('queueIds')) {
@@ -408,6 +415,7 @@ function* cycleSelectedQueue() {
 }
 
 function* swapTrackOrder() {
+  yield call(notifyBuoy);
   const selectedQueue = yield select(Selectors.selectedQueue);
 
   let resp;
