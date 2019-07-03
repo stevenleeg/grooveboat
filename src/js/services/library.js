@@ -356,7 +356,6 @@ function* requestTrack({callback}) {
     .merge({data: blob, contentType});
 
   callback({track: respTrack.toJS()});
-  yield put(Actions.cycleSelectedQueue());
 }
 
 function* deleteTrack({track}) {
@@ -432,4 +431,5 @@ export function* Saga() {
   yield takeEvery(ActionTypes.SWAP_TRACK_ORDER, swapTrackOrder);
 
   yield* rpcToAction('requestTrack', Actions.requestTrack);
+  yield* rpcToAction('cycleSelectedQueue', Actions.cycleSelectedQueue);
 }

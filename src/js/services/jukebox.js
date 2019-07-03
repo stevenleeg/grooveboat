@@ -10,6 +10,7 @@ import {Actions as ToasterActions} from './toaster';
 // Helpers
 //
 let player = null;
+let onDeckPlayer = null;
 let currentId = -1;
 
 const awaitEnd = () => {
@@ -28,6 +29,7 @@ const awaitLoad = () => {
 // Actions
 //
 export const ActionTypes = {
+  SET_ON_DECK: 'services/jukebox/set_on_deck',
   PLAY_TRACK: 'services/jukebox/play_track',
   PLAY_TRACK_FAILURE: 'services/jukebox/play_track_failure',
   PLAY_TRACK_SUCCESS: 'services/jukebox/play_track_success',
@@ -40,6 +42,7 @@ export const ActionTypes = {
 };
 
 export const Actions = {
+  setOnDeck: createAction(ActionTypes.SET_ON_DECK, 'track'),
   playTrack: createAction(ActionTypes.PLAY_TRACK, 'track'),
   playTrackFailure: createAction(ActionTypes.PLAY_TRACK_FAILURE, 'message'),
   playTrackSuccess: createAction(ActionTypes.PLAY_TRACK_SUCCESS, 'track'),
@@ -56,11 +59,19 @@ export const Actions = {
 //
 const initialState = Immutable.fromJS({
   currentTrack: null,
+  onDeckTrack: null,
+  loadingOnDeck: false,
   loadingTrack: false,
   mute: false,
 });
 
 const callbacks = [
+  {
+    actionType: ActionTypes.SET_ON_DECK,
+    callback: (s, {track}) => {
+      return s.merge({onDeckTrack: track});
+    },
+  },
   {
     actionType: ActionTypes.PLAY_TRACK,
     callback: (s, {track, votes, startedAt}) => {
@@ -103,6 +114,7 @@ export const Reducers = {initialState, callbacks};
 //
 const store = s => s.getIn(['services', 'jukebox']);
 const currentTrack = s => store(s).get('currentTrack');
+const onDeckTrack = s => store(s).get('onDeckTrack');
 const mute = s => store(s).get('mute');
 const loadingTrack = s => store(s).get('loadingTrack');
 const voteCounts = (s) => {
@@ -166,6 +178,13 @@ function* syncTrack() {
   }
 }
 
+function setOnDeck({track}) {
+  onDeckPlayer = new Howl({
+    src: [track.get('url')],
+    format: ['mp3'],
+  });
+}
+
 function* playTrack({startedAt, track}) {
   // Try to prevent two tracks from overlapping
   if (player !== null) {
@@ -174,12 +193,17 @@ function* playTrack({startedAt, track}) {
     player.stop();
   }
 
-  player = new Howl({
-    src: [track.get('url')],
-    format: ['mp3'],
-    html5: false,
-    autoplay: false,
-  });
+  // Have we been preloading this track?
+  const onDeck = yield select(onDeckTrack);
+  if (onDeck && onDeck.get('id') === track.get('id')) {
+    player = onDeckPlayer;
+    onDeckPlayer = null;
+  } else {
+    player = new Howl({
+      src: [track.get('url')],
+      format: ['mp3'],
+    });
+  }
 
   // Should we mute?
   const shouldMute = yield select(mute);
@@ -190,27 +214,33 @@ function* playTrack({startedAt, track}) {
   // Useful for debugging
   window.player = player;
 
-  const {timeout, canceled} = yield race({
-    timeout: delay(25 * 1000),
-    loaded: call(awaitLoad),
-    canceled: take(ActionTypes.PLAY_TRACK),
-  });
+  // Do we need to wait for the file to finish loading?
+  if (player.state() !== 'loaded') {
+    // eslint-disable-next-line func-names
+    const timeoutTask = yield fork(function* () {
+      yield delay(25 * 1000);
+      yield put(ToasterActions.notify({
+        title: 'timeout',
+        message: 'looks like this track isn\'t loading properly. hang tight or refresh.',
+        icon: '🤔',
+      }));
+    });
 
-  if (timeout) {
-    yield put(ToasterActions.notify({
-      title: 'timeout',
-      message: 'looks like this track isn\'t loading properly. hang tight or refresh.',
-      icon: '🤔',
-    }));
-    return;
-  }
-  if (canceled) {
-    // Some other track started getting played before we had a chance to load
-    // this one
-    return;
+    const {canceled} = yield race({
+      loaded: call(awaitLoad),
+      canceled: take(ActionTypes.PLAY_TRACK),
+    });
+
+    yield cancel(timeoutTask);
+
+    if (canceled) {
+      // Some other track started getting played before we had a chance to load
+      // this one
+      return;
+    }
   }
 
-  // The server will give us 4 seconds of buffer to download the track, so if
+  // The server will give us a few extra seconds to download the track, so if
   // we end early let's delay for a bit so we don't need to seek
   const now = (+new Date()) / 1000;
   if (now - startedAt < 0) {
@@ -252,8 +282,10 @@ export function* Saga() {
   yield takeEvery(ActionTypes.TRACK_ENDED, trackEnded);
   yield takeEvery(ActionTypes.STOP_TRACK, stopTrack);
   yield takeEvery(ActionTypes.SET_MUTE, setMute);
+  yield takeEvery(ActionTypes.SET_ON_DECK, setOnDeck);
 
   yield* rpcToAction('playTrack', Actions.playTrack);
   yield* rpcToAction('setVotes', Actions.setVotes);
   yield* rpcToAction('stopTrack', Actions.stopTrack);
+  yield* rpcToAction('setOnDeck', Actions.setOnDeck);
 }
