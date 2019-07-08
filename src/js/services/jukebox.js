@@ -13,18 +13,6 @@ let player = null;
 let onDeckPlayer = null;
 let currentId = -1;
 
-const awaitEnd = () => {
-  return new Promise((resolve) => {
-    player.once('end', () => resolve());
-  });
-};
-
-const awaitLoad = () => {
-  return new Promise((resolve) => {
-    player.once('load', () => resolve());
-  });
-};
-
 ////
 // Actions
 //
@@ -143,24 +131,44 @@ export const Selectors = {
 ///
 // Sagas
 //
-function* listenForEnd() {
-  yield call(awaitEnd);
 
-  const track = yield select(currentTrack);
-  yield put(Actions.trackEnded({track}));
+function* awaitEnd({track}) {
+  yield delay(1000);
+
+  // If the track has changed from underneath us let's just exit
+  const storeTrack = yield select(currentTrack);
+  if (track.get('id') !== storeTrack.get('id')) {
+    return;
+  }
+
+  // Still playing, let's bail
+  if (player.seek() === 0) {
+    yield put(Actions.trackEnded({track}));
+  } else {
+    yield call(awaitEnd, {track});
+  }
+}
+
+
+function* awaitLoad() {
+  if (player.state() === 'loaded') {
+    return;
+  }
+
+  yield delay(500);
+  yield call(awaitLoad);
 }
 
 // Syncs the current track's playhead with the server-provided started at time
-function* syncTrack() {
-  let track = yield select(currentTrack);
-  const trackId = track.get('id');
-  const startedAt = track.get('startedAt');
+function* syncTrack({track}) {
+  let storeTrack = yield select(currentTrack);
+  const startedAt = storeTrack.get('startedAt');
 
   // Give some time to buffer
   while (true) {
     // Make sure the track is the same
-    track = yield select(currentTrack);
-    if (!track || track.get('id') !== trackId) {
+    storeTrack = yield select(currentTrack);
+    if (!storeTrack || storeTrack.get('id') !== track.get('id')) {
       return;
     }
 
@@ -192,8 +200,6 @@ function setOnDeck({track}) {
 function* playTrack({startedAt, track}) {
   // Try to prevent two tracks from overlapping
   if (player !== null) {
-    yield cancel(player.endTask);
-    yield cancel(player.syncTask);
     player.stop();
   }
 
@@ -270,13 +276,13 @@ function* playTrack({startedAt, track}) {
   }));
 
   currentId = player.play();
-  player.endTask = yield fork(listenForEnd);
-  player.syncTask = yield fork(syncTrack);
+  yield fork(awaitEnd, {track});
+
+  yield delay(100);
+  yield fork(syncTrack, {track});
 }
 
 function* trackEnded() {
-  yield cancel(player.endTask);
-  yield cancel(player.syncTask);
   yield call(send, {name: 'trackEnded'});
 }
 
