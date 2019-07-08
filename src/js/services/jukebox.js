@@ -137,7 +137,7 @@ function* awaitEnd({track}) {
 
   // If the track has changed from underneath us let's just exit
   const storeTrack = yield select(currentTrack);
-  if (track.get('id') !== storeTrack.get('id')) {
+  if (!storeTrack || track.get('id') !== storeTrack.get('id')) {
     return;
   }
 
