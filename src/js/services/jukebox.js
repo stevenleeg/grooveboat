@@ -249,7 +249,17 @@ function* playTrack({startedAt, track}) {
   // we end early let's delay for a bit so we don't need to seek
   const now = (+new Date()) / 1000;
   if (now - startedAt < 0) {
-    yield delay((startedAt - now) * 1000);
+    // Prevent race conditions, ie if the track gets stopped while we're
+    // delaying for the begin time
+    const {canceled, stopped} = yield race({
+      finished: delay((startedAt - now) * 1000),
+      canceled: take(ActionTypes.PLAY_TRACK),
+      stopped: take(ActionTypes.STOP_TRACK),
+    });
+
+    if (canceled || stopped) {
+      return;
+    }
   }
 
   yield put(Actions.playTrackSuccess({
