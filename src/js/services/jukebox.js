@@ -286,9 +286,7 @@ function* trackEnded() {
   yield call(send, {name: 'trackEnded'});
 }
 
-function* stopTrack() {
-  yield cancel(player.endTask);
-  yield cancel(player.syncTask);
+function stopTrack() {
   player.stop();
 }
 
