@@ -401,6 +401,8 @@ const Chat = () => {
   };
 
   const onKeyPress = (e) => {
+    if (sendingMessage) return;
+
     if (e.key === 'Enter') {
       dispatch(RoomActions.sendChat());
       e.preventDefault();
@@ -437,7 +439,6 @@ const Chat = () => {
       <div className="chat--compose">
         <textarea
           placeholder="type it and hit enter"
-          disabled={sendingMessage}
           onChange={onChange}
           value={newMessage}
           onKeyPress={onKeyPress}
