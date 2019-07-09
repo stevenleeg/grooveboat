@@ -187,6 +187,10 @@
     color: $color-alt-text;
     font-size: 14px;
     margin-top: 5px;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
   }
 }
 

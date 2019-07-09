@@ -147,9 +147,10 @@ const RoomSelectorPage = ({history}) => {
             {(rooms.count() > 0) && (
               <ul className="selector--rooms">
                 {rooms.map((r) => {
-                  let nowPlaying = r.getIn(['nowPlaying', 'filename']);
-                  if (!nowPlaying) {
-                    nowPlaying = 'nothing playing';
+                  const filename = r.getIn(['nowPlaying', 'track', 'filename']);
+                  let nowPlaying = 'nothing playing';
+                  if (filename) {
+                    nowPlaying = `🎶 ${filename}`;
                   }
 
                   return <li
