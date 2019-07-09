@@ -1,7 +1,6 @@
 import React, {Fragment, useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {withRouter} from 'react-router';
-import JWT from 'jsonwebtoken';
 import classNames from 'classnames';
 
 import {
@@ -13,183 +12,192 @@ import {
 import layout from '../../components/layout';
 import {Actions} from './data';
 
-const EXAMPLE_JWT = 'should look something like eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzIjoid3M6Ly9idW95LnRlaWYueHl6LyJ9.Av1Z3HtkzLTMwjyJ_3rs4ARvqpdK8ylHllBrBwF-Vvg';
+const SCREEN_CREATE = 'create';
+const SCREEN_SELECT = 'select';
 
-const SCREEN_INVITE = 'invite';
-const SCREEN_CREATE_ROOM = 'create-room';
-const SCREEN_DEFAULT = 'default';
+const FAQ = [
+  {
+    question: '❓ what is this?',
+    answer: (
+      <Fragment>
+        <p>
+          grooveboat is a website that lets you play music with your friends.
+        </p>
+        <p>
+          join a room and you'll be able to sit back and listen to a radio
+          stream created by real live humans. if you're feeling fiesty you can
+          queue up some music of your own and dj for the rest of the room.
+        </p>
+      </Fragment>
+    ),
+  },
+  {
+    question: '✨ why does this exist?',
+    answer: (
+      <Fragment>
+        <p>
+          the maintainers of grooveboat believe that humans make better
+          playlists than algorithms. we also think that music is an amazing
+          way to bring people together and form awesome online communities.
+        </p>
+        <p>
+          grooveboat was made in honor of the late <a href="https://en.wikipedia.org/wiki/Turntable.fm" target="_blank" rel="noopener noreferrer">turntable.fm</a>.
+          it's an <a href="https://github.com/stevenleeg/grooveboat" target="_blank" rel="noopener noreferrer">open source</a> labor of love– meaning there are no business models or engagement metrics
+          trying to keep you addicted.
+        </p>
+        <p>
+          we want every room to be its own soverign community, with the
+          ability to set its music taste, ideals, style, vibes as its members
+          see fit. grooveboat is meant to cultivate weird and fun internet
+          communities, centered around music.
+        </p>
+      </Fragment>
+    ),
+  },
+  {
+    question: '✍️ how can i contribute?',
+    answer: (
+      <Fragment>
+        <p>
+          if you like what you see here there are numerous ways to get
+          involved:
+        </p>
+        <p>
+          <b>stick around</b> and be a regular in a room you enjoy. this
+          project is only as good as the communities built on it, and
+          communities need long-lasting members.
+        </p>
+        <p>more to come here...</p>
+      </Fragment>
+    ),
+  },
+];
 
 const RoomSelectorPage = ({history}) => {
   ////
   // Hooks
   //
-  const [screen, setScreen] = useState(SCREEN_DEFAULT);
-  const [inviteForm, setInviteForm] = useState({
-    invite: '',
-    roomName: '',
-  });
-  const [createForm, setCreateForm] = useState({
-    name: '',
-  });
-
   const rooms = useSelector(RoomSelectors.rooms);
-  const buoys = useSelector(BuoySelectors.buoys);
   const isConnecting = useSelector(BuoySelectors.isConnecting);
   const connectedBuoy = useSelector(BuoySelectors.connectedBuoy);
   const dispatch = useDispatch();
 
+  const [room, setRoom] = useState({name: ''});
+  const [screen, setScreen] = useState(SCREEN_SELECT);
+  const [openFAQ, setOpenFAQ] = useState(0);
+
   useEffect(() => {
     dispatch(Actions.init());
-
-    // If we have a code in the URL let's go ahead and fire things up
-    const urlParams = new URLSearchParams(window.location.search);
-    const inviteCode = urlParams.get('code');
-    if (inviteCode) {
-      dispatch(Actions.joinBuoy({
-        inviteCode,
-        callback: () => setScreen(SCREEN_DEFAULT),
-      }));
-    }
   }, []);
-
-  useEffect(() => {
-    let token = null;
-    if (inviteForm.invite.length > 0) {
-      const str = inviteForm.invite
-        .replace(' ', '')
-        .replace('\n', '');
-      try {
-        token = JWT.decode(str);
-      } catch (e) {
-        token = null;
-        return;
-      }
-
-      if (token && token.u) {
-        dispatch(Actions.joinBuoy({
-          inviteCode: str,
-          callback: () => setScreen(SCREEN_DEFAULT),
-        }));
-      }
-    }
-  }, [inviteForm]);
 
   ////
   // Action callbacks
   //
-  const onCreateSuccess = ({room}) => {
-    history.push(`/rooms/${room.get('id')}`);
+  const createRoom = () => {
+    dispatch(Actions.createRoom({
+      ...room,
+      callback: ({room: r}) => history.push(`/rooms/${r.get('id')}`),
+    }));
   };
 
   ////
   // Rendering
   //
-  let content;
-  if (isConnecting) {
-    content = (
-      <Fragment>
-        <h1>welcome</h1>
-        <p>connecting...</p>
-      </Fragment>
-    );
-  } else if (screen === SCREEN_INVITE) {
-    content = (
-      <Fragment>
-        <h1>join a buoy</h1>
-        <label htmlFor="server_code">invite code</label>
-        <textarea
-          className="room-selector--invite"
-          name="server_code"
-          placeholder={EXAMPLE_JWT}
-          value={inviteForm.invite}
-          onChange={e => setInviteForm({...inviteForm, invite: e.target.value})}
-        />
-      </Fragment>
-    );
-  } else if (buoys.count() === 0) {
-    content = (
-      <Fragment>
-        <h1>welcome</h1>
-        <p>
-          hmm, looks like you haven't joined a buoy yet.
-          {' '}
-          <a onClick={() => setScreen(SCREEN_INVITE)}>have an invite code?</a>
-        </p>
-      </Fragment>
-    );
-  } else if (screen === SCREEN_CREATE_ROOM) {
-    content = (
-      <Fragment>
-        <h2>create room</h2>
-        <label>room name:</label>
-        <input
-          type="text"
-          placeholder="da best music"
-          value={createForm.name}
-          onChange={e => setCreateForm({...createForm, name: e.target.value})}
-        />
-        <button
-          type="button"
-          disabled={createForm.name.length === 0}
-          onClick={() => dispatch(Actions.createRoom({
-            ...createForm,
-            callback: onCreateSuccess,
-          }))}
-        >
-          create room
-        </button>
-      </Fragment>
-    );
-  } else if (connectedBuoy && screen === SCREEN_DEFAULT) {
-    content = (
-      <Fragment>
-        <h1>join a room</h1>
-        <p>
-          you are connected to
-          {` ${connectedBuoy.get('name')}`}
-        </p>
-        <div
-          className={classNames([
-            'room-selector--rooms',
-            {none: rooms.count() === 0},
-          ])}
-        >
-          {rooms.map((room) => {
-            return (
-              <div
-                key={room.get('id')}
-                className="room-selector--room"
-                onClick={() => history.push(`/rooms/${room.get('id')}`)}
-              >
-                {room.get('name')}
-              </div>
-            );
-          })}
-          {rooms.count() === 0 && (
-            <div className="room-selector--none">
-              no rooms found.&nbsp;
-              <span onClick={() => setScreen(SCREEN_CREATE_ROOM)}>
-                create one?
-              </span>
-            </div>
-          )}
-        </div>
-        {rooms.count() !== 0 && (
-          <button type="button" onClick={() => setScreen(SCREEN_CREATE_ROOM)}>create room</button>
-        )}
-      </Fragment>
-    );
-  }
-
   return (
-    <Fragment>
-      <div className="room-selector--dragbar" />
-      <div className="room-selector--container">
-        <div className="room-selector--box">
-          {content}
-        </div>
+    <div className="room-selector--container">
+      <div className="room-selector--description">
+        <div className="logo">🕺🚢</div>
+        <h1>welcome to grooveboat</h1>
+        {FAQ.map((item, i) => {
+          const open = openFAQ === i;
+          return (
+            <Fragment>
+              <div
+                className={classNames(['faq--question', {open}])}
+                onClick={() => setOpenFAQ(i)}
+              >
+                {item.question}
+              </div>
+              {open && (
+                <div className="faq--answer">{item.answer}</div>
+              )}
+            </Fragment>
+          );
+        })}
       </div>
-    </Fragment>
+      <div className="room-selector--selector">
+        <h1>{screen === SCREEN_CREATE ? 'create' : 'join'} a room</h1>
+        {isConnecting && (
+          <div className="selector--connecting">
+            <div className="icon">📞</div>
+            <div className="text">connecting to server...</div>
+          </div>
+        )}
+        {(!isConnecting && !connectedBuoy) && (
+          <div className="selector--nobuoy">
+            <div className="icon">🤔</div>
+            <div className="text">can't establish connection with buoy. try contacting the admins?</div>
+          </div>
+        )}
+        {(connectedBuoy && screen === SCREEN_SELECT) && (
+          <div className="selector--select">
+            <p>
+              you're connected to {connectedBuoy.get('name')}
+            </p>
+            {(rooms.count() > 0) && (
+              <ul className="selector--rooms">
+                {rooms.map((r) => {
+                  let nowPlaying = r.getIn(['nowPlaying', 'filename']);
+                  if (!nowPlaying) {
+                    nowPlaying = 'nothing playing';
+                  }
+
+                  return <li
+                    key={r.get('id')}
+                    onClick={() => history.push(`/rooms/${r.get('id')}`)}
+                  >
+                    <div className="room--name">{r.get('name')}</div>
+                    <div className="room--nowplaying">{nowPlaying}</div>
+                    <div className="room--meta">
+                      👥 {r.get('peerCount')}
+                    </div>
+                  </li>;
+                })}
+              </ul>
+            )}
+            {(rooms.count() === 0) && (
+              <div className="selector--rooms-empty">
+                <div className="icon">🙀</div>
+                <div className="text">
+                  no rooms yet. wanna{' '}
+                  <button
+                    type="button"
+                    className="link"
+                    onClick={() => setScreen(SCREEN_CREATE)}
+                  >
+                    create one?
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        {(connectedBuoy && screen === SCREEN_CREATE) && (
+          <div className="selector--create">
+            <div className="create--form">
+              <label>room name:</label>
+              <input
+                type="text"
+                placeholder="da club"
+                onInput={e => setRoom({...room, name: e.target.value})}
+                value={room.name}
+              />
+              <button type="button" onClick={createRoom}>create room</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

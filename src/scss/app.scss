@@ -75,6 +75,7 @@ button {
   color: $color-white;
   margin: 5px 0px;
   transition: 150ms;
+  cursor: pointer;
 
   &:disabled {
     background-color: $color-light-gray;
@@ -87,10 +88,21 @@ button {
     color: $color-dark-gray;
     padding: 0px;
     margin: 0px;
-    cursor: pointer;
 
     &:hover {
       color: $color-blue;
+    }
+  }
+
+  &.link {
+    background-color: transparent;
+    color: $color-blue;
+    padding: 0px;
+    margin: 0px;
+
+    &:hover {
+      background-color: $color-blue;
+      color: $color-white;
     }
   }
 }

@@ -1,61 +1,214 @@
-.room-selector--dragbar {
-  @include drag-region($color-light-gray);
+@mixin valign-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@mixin with-icon {
+  .icon {
+    font-size: 128px;
+  }
+
+  .text {
+    font-size: 24px;
+    line-height: 1.3em;
+  }
 }
 
 .room-selector--container {
   display: flex;
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-}
-
-.room-selector--box {
-  background-color: $color-white;
   width: 100%;
-  max-width: 600px;
-  padding: 15px;
+}
+
+.room-selector--description {
+  width: 60%;
+  height: 100vh;
+  background: $color-white;
+  padding: 25px;
   box-sizing: border-box;
+
+  .logo {
+    font-size: 72px;
+  }
+
+  h2 {
+    font-size: 28px;
+  }
+
+  p {
+    line-height: 1.3em;
+    font-size: 18px;
+  }
+
+  .faq--question {
+    position: relative;
+    font-size: 24px;
+    padding: 10px 0px;
+    margin-top: 5px;
+    border-bottom: 1px solid $color-border;
+    cursor: pointer;
+
+    &::after {
+      content: "▶";
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0px 5px;
+      position: absolute;
+      top: 0px;
+      bottom: 0px;
+      right: 0px;
+    }
+
+    &.open::after {
+      content: "▼";
+    }
+  }
 }
 
-.room-selector--join-btn {
-  color: $color-blue;
-  cursor: pointer;
-}
-
-.room-selector--invite {
-  font-family: monospace;
-}
-
-.room-selector--rooms {
-  background-color: $color-light-gray;
-  height: 150px;
+.room-selector--selector {
+  width: 40%;
+  height: 100vh;
+  padding: 25px;
+  padding-bottom: 0px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  position: relative;
 
-  &.none {
-    align-items: center;
-    justify-content: center;
+  h1 {
+    background: $color-light-gray;
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    padding: 25px;
+    z-index: 1000;
   }
 }
 
-.room-selector--room {
-  padding: 15px;
-  cursor: pointer;
-  transition: 150ms;
+.selector--connecting {
+  @include valign-center;
+  @include with-icon;
+  text-align: center;
+  flex: 1;
 
-  &:not(:nth-last-child(1)) {
-    border-bottom: 1px solid $color-border;
-  }
-
-  &:hover {
-    background: $color-blue;
-    color: $color-white;
+  .icon {
+    animation: highlight-icon 2s infinite;
   }
 }
 
-.room-selector--none {
-  span {
-    color: $color-blue;
+@keyframes highlight-icon {
+  0% {
+    text-shadow: 0px 0px 5px $color-blue;
+  }
+
+  50% {
+    text-shadow: 0px 0px 25px $color-blue;
+  }
+
+  100% {
+    text-shadow: 0px 0px 5px $color-blue;
+  }
+}
+
+.selector--select {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: 60px;
+  overflow-y: auto;
+}
+
+.selector--rooms-empty {
+  @include valign-center;
+  @include with-icon;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  left: 0px;
+  bottom: 0px;
+  display: flex;
+  text-align: center;
+  margin-top: 40px;
+
+  .icon {
+    font-size: 128px;
+  }
+
+  .text {
+    font-size: 24px;
+  }
+
+  button.link {
+    font-size: 24px;
+  }
+}
+
+.selector--rooms {
+  padding: 0px;
+  margin: 0px;
+  background: $color-white;
+
+  li {
+    position: relative;
+    list-style: none;
+    padding: 15px;
     cursor: pointer;
+    margin: 0px;
+    border-bottom: 1px solid $color-border;
+
+    &:hover {
+      color: $color-white;
+      background: $color-blue;
+
+      .room--nowplaying {
+        color: $color-white;
+      }
+    }
+
+    &:nth-last-child(1) {
+      border-bottom: 0px;
+    }
   }
+
+  .room--meta {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+  }
+
+  .room--name {
+    font-size: 24px;
+  }
+
+  .room--nowplaying {
+    color: $color-alt-text;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+}
+
+.selector--create {
+  @include valign-center;
+  flex: 1;
+
+  input {
+    background: $color-white;
+  }
+}
+
+.selector--nobuoy {
+  @include valign-center;
+  @include with-icon;
+  flex: 1;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  left: 0px;
+  bottom: 0px;
+  display: flex;
+  text-align: center;
+  margin-top: 40px;
 }
