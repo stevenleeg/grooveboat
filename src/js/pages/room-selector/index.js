@@ -111,7 +111,7 @@ const RoomSelectorPage = ({history}) => {
         {FAQ.map((item, i) => {
           const open = openFAQ === i;
           return (
-            <Fragment>
+            <Fragment key={i}>
               <div
                 className={classNames(['faq--question', {open}])}
                 onClick={() => setOpenFAQ(i)}
