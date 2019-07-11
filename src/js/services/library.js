@@ -219,7 +219,7 @@ function* init() {
   } catch (e) {
     if (e.status !== 404) {
       // eslint-disable-next-line no-console
-      console.log('something went wront fetching the queue', e);
+      console.log('something went wrong fetching the queue', e);
       return;
     }
 

@@ -245,9 +245,8 @@ function* join({inviteCode}) {
 }
 
 function* connect({buoy}) {
-  const token = JWT.decode(buoy.get('token'));
   try {
-    yield call(openSocket, {url: token.u});
+    yield call(openSocket, {url: buoy.get('url')});
   } catch (e) {
     yield put(Actions.connectFailure({message: e.message, buoy}));
     return;
@@ -258,7 +257,7 @@ function* connect({buoy}) {
     params: {jwt: buoy.get('token')},
   });
 
-  if (!resp.success) {
+  if (resp.error) {
     yield put(Actions.connectFailure({...resp, buoy}));
   }
 

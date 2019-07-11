@@ -14,9 +14,28 @@ import {
 import {Actions as ToasterActions} from './toaster';
 
 ////
+// Helpers
+//
+const removeStoredRoom = async ({storedRoom}) => {
+  const knownRooms = await db.get('rooms');
+  const index = knownRooms.get('roomIds').indexOf(storedRoom.get('_id'));
+  if (index === -1) {
+    return;
+  }
+
+  const updatedIds = knownRooms.get('roomIds').splice(index, 1);
+  await db.put(knownRooms.merge({roomIds: updatedIds}));
+  await db.remove(storedRoom);
+};
+
+////
 // Actions
 //
 export const ActionTypes = {
+  FETCH_STORED: 'services/room/fetch_stored',
+  FETCH_STORED_SUCCESS: 'services/room/fetch_stored_success',
+  FETCH_STORED_FAILURE: 'services/room/fetch_stored_failure',
+
   FETCH_ALL: 'services/rooms/fetch_all',
   FETCH_ALL_SUCCESS: 'services/rooms/fetch_all_success',
 
@@ -32,7 +51,7 @@ export const ActionTypes = {
 
   LEAVE_ROOM: 'services/rooms/leave_room',
   LEAVE_ROOM_SUCCESS: 'services/rooms/leave_room_success',
-  LEAVE_ROOM_ERROR: 'services/rooms/leave_room_error',
+  LEAVE_ROOM_FAILURE: 'services/rooms/leave_room_failure',
 
   SET_PEERS: 'services/rooms/set_peers',
 
@@ -72,6 +91,10 @@ export const ActionTypes = {
 export const Actions = {
   fetchAll: createAction(ActionTypes.FETCH_ALL),
   fetchAllSuccess: createAction(ActionTypes.FETCH_ALL_SUCCESS, 'rooms'),
+
+  fetchStored: createAction(ActionTypes.FETCH_STORED),
+  fetchStoredFailure: createAction(ActionTypes.FETCH_STORED_FAILURE, 'message'),
+  fetchStoredSuccess: createAction(ActionTypes.FETCH_STORED_SUCCESS, 'rooms'),
 
   setRooms: createAction(ActionTypes.SET_ROOMS, 'rooms'),
 
@@ -127,6 +150,7 @@ export const Actions = {
 const initialState = Immutable.fromJS({
   loading: false,
   rooms: [],
+  storedRooms: [],
   chat: {
     messages: [],
     sendingMessage: false,
@@ -137,6 +161,10 @@ const initialState = Immutable.fromJS({
 });
 
 const callbacks = [
+  {
+    actionType: ActionTypes.FETCH_STORED_SUCCESS,
+    callback: (s, {rooms}) => s.set('storedRooms', rooms),
+  },
   {
     actionType: ActionTypes.FETCH_ALL,
     callback: s => s.set('loading', true),
@@ -322,7 +350,6 @@ const chatMessagesWithPeers = (s) => {
   return store(s).getIn(['chat', 'messages']).map((msg) => {
     const profile = profiles.get(msg.get('fromPeerId')) || new Immutable.Map();
 
-    //console.log(profile.toJS());
     return msg
       .set('peer', new Immutable.Map({
         id: msg.get('fromPeerId'),
@@ -330,6 +357,19 @@ const chatMessagesWithPeers = (s) => {
       }))
       .remove('fromPeerId');
   });
+};
+
+const _storedRooms = (s) => {
+  // Filter out rooms that already exist
+  const existingRooms = store(s)
+    .get('rooms')
+    .reduce((set, r) => {
+      return set.add(r.get('id'));
+    }, new Immutable.Set());
+
+  return store(s)
+    .get('storedRooms')
+    .filter(r => !existingRooms.has(r.get('_id').replace('rooms/', '')));
 };
 
 export const Selectors = {
@@ -344,6 +384,7 @@ export const Selectors = {
   sendingMessage,
   chatMessages,
   chatMessagesWithPeers,
+  storedRooms: _storedRooms,
 };
 
 ////
@@ -368,7 +409,91 @@ function* createRoom({name}) {
     return;
   }
 
-  yield put(Actions.createRoomSuccess({room: Immutable.fromJS(resp)}));
+  // Store our room in the local database so we can recreate it later if it
+  // disappears
+  const {adminToken} = resp;
+  const room = Immutable.fromJS(resp.room);
+
+  const storedRoom = Immutable.fromJS({
+    _id: `rooms/${room.get('id')}`,
+    name: room.get('name'),
+    adminToken,
+  });
+
+  try {
+    yield call(db.put, storedRoom);
+  } catch (e) {
+    yield put(Actions.createRoomFailure({message: e.message}));
+    return;
+  }
+
+  // Add it to the list of stored rooms
+  let knownRooms;
+  try {
+    knownRooms = yield call(db.get, 'rooms');
+  } catch (e) {
+    if (e.status !== 404) {
+      // eslint-disable-next-line no-console
+      console.log('something went wrong fetching the owned rooms list', e);
+      yield put(Actions.createRoomFailure({message: e.message}));
+      return;
+    }
+
+    knownRooms = Immutable.fromJS({
+      _id: 'rooms',
+      roomIds: [],
+    });
+  }
+
+  knownRooms = knownRooms.merge({
+    roomIds: knownRooms.get('roomIds').push(storedRoom.get('_id')),
+  });
+
+  try {
+    yield call(db.put, knownRooms);
+  } catch (e) {
+    yield put(Actions.createRoomFailure({message: e.message}));
+    return;
+  }
+
+  yield put(Actions.createRoomSuccess({room}));
+}
+
+function* restoreRoom({id}) {
+  let storedRoom;
+  try {
+    storedRoom = yield call(db.get, `rooms/${id}`);
+  } catch (e) {
+    if (e.status !== 404) {
+      yield put(Actions.joinRoomFailure({message: e.message}));
+      return;
+    }
+
+    yield put(Actions.joinRoomFailure({message: 'stored room not found'}));
+    return;
+  }
+
+  const resp = yield call(send, {
+    name: 'restoreRoom',
+    params: {adminToken: storedRoom.get('adminToken')},
+  });
+
+  if (resp.error && resp.message === 'bad admin id') {
+    yield call(removeStoredRoom, {storedRoom});
+
+    yield put(Actions.joinRoomFailure({
+      message: 'you are not authenticated as the admin of this room',
+    }));
+    return;
+  }
+
+  if (resp.error) {
+    yield put(Actions.joinRoomFailure({message: resp.message}));
+    return;
+  }
+
+  const room = Immutable.fromJS(resp.room);
+  yield put(Actions.joinRoomSuccess({room}));
 }
 
 function* joinRoom({id}) {
@@ -376,6 +501,12 @@ function* joinRoom({id}) {
     name: 'joinRoom',
     params: {id},
   });
+
+  if (resp.error && resp.message === 'room not found') {
+    // Can we restore this room
+    yield call(restoreRoom, {id});
+    return;
+  }
 
   if (resp.error) {
     yield put(Actions.joinRoomFailure({message: resp.message}));
@@ -531,7 +662,39 @@ function* leaveRoom() {
   yield put(Actions.leaveRoomSuccess());
 }
 
+function* fetchStored() {
+  let knownRooms;
+  try {
+    knownRooms = yield call(db.get, 'rooms');
+  } catch (e) {
+    if (e.status === 404) {
+      yield put(Actions.fetchStoredSuccess({rooms: new Immutable.List()}));
+      return;
+    }
+
+    yield put(Actions.fetchStoredFailure({message: e.message}));
+    return;
+  }
+
+  const storedRooms = [];
+  for (const roomId of knownRooms.get('roomIds').toJS()) {
+    let storedRoom;
+    try {
+      storedRoom = yield call(db.get, roomId);
+    } catch (e) {
+      continue;
+    }
+
+    storedRooms.push(storedRoom);
+  }
+
+  yield put(Actions.fetchStoredSuccess({
+    rooms: Immutable.fromJS(storedRooms),
+  }));
+}
+
 export function* Saga() {
+  yield takeEvery(ActionTypes.FETCH_STORED, fetchStored);
   yield takeEvery(ActionTypes.FETCH_ALL, fetchAll);
   yield takeEvery(ActionTypes.CREATE_ROOM, createRoom);
   yield takeEvery(ActionTypes.JOIN_ROOM, joinRoom);

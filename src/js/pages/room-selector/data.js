@@ -42,6 +42,7 @@ function* joinBuoy({inviteCode, callback}) {
 
   // Fetch the rooms in the buoy
   yield put(RoomActions.fetchAll());
+  yield put(RoomActions.fetchStored());
   if (callback) {
     yield call(callback);
   }
@@ -53,7 +54,7 @@ function* init() {
   const {buoys} = yield take(BuoyActionTypes.FETCH_BUOYS_SUCCESS);
   if (process.env.DEFAULT_INVITE) {
     // Do we have a default buoy to go with?
-    yield* joinBuoy({inviteCode: process.env.DEFAULT_INVITE});
+    yield call(joinBuoy, {inviteCode: process.env.DEFAULT_INVITE});
     return;
   }
   if (buoys.count() === 0 && !process.env.DEFAULT_INVITE) {
@@ -70,6 +71,7 @@ function* init() {
     return;
   }
 
+  yield put(RoomActions.fetchStored());
   yield put(RoomActions.fetchAll());
 }
 

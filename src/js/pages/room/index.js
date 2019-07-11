@@ -678,14 +678,12 @@ const Settings = withRouter(({open, onClose, history}) => {
   );
 });
 
-const RoomPage = ({history, match}) => {
+const RoomPage = ({match}) => {
   ////
   // Hooks
   //
   const isConnecting = useSelector(BuoySelectors.isConnecting);
   const connectedBuoy = useSelector(BuoySelectors.connectedBuoy);
-  const isFetchingBuoys = useSelector(BuoySelectors.isFetching);
-  const buoys = useSelector(BuoySelectors.buoys);
   const muted = useSelector(JukeboxSelectors.mute);
 
   const dispatch = useDispatch();
@@ -709,13 +707,6 @@ const RoomPage = ({history, match}) => {
       }
     };
   }, []);
-
-  useEffect(() => {
-    // Redirect to index if we didn't find any buoys
-    if (isFetchingBuoys === false && buoys.count() === 0) {
-      history.push('/');
-    }
-  }, [isFetchingBuoys]);
 
   ////
   // Rendering

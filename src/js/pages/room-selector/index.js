@@ -78,6 +78,7 @@ const RoomSelectorPage = ({history}) => {
   // Hooks
   //
   const rooms = useSelector(RoomSelectors.rooms);
+  const storedRooms = useSelector(RoomSelectors.storedRooms);
   const isConnecting = useSelector(BuoySelectors.isConnecting);
   const connectedBuoy = useSelector(BuoySelectors.connectedBuoy);
   const dispatch = useDispatch();
@@ -145,28 +146,59 @@ const RoomSelectorPage = ({history}) => {
               you're connected to {connectedBuoy.get('name')}
             </p>
             {(rooms.count() > 0) && (
-              <ul className="selector--rooms">
-                {rooms.map((r) => {
-                  const filename = r.getIn(['nowPlaying', 'track', 'filename']);
-                  let nowPlaying = 'nothing playing';
-                  if (filename) {
-                    nowPlaying = `🎶 ${filename}`;
-                  }
+              <Fragment>
+                <ul className="selector--rooms">
+                  {rooms.map((r) => {
+                    const filename = r.getIn(['nowPlaying', 'track', 'filename']);
+                    let nowPlaying = 'nothing playing';
+                    if (filename) {
+                      nowPlaying = `🎶 ${filename}`;
+                    }
 
-                  return <li
-                    key={r.get('id')}
-                    onClick={() => history.push(`/rooms/${r.get('id')}`)}
+                    return <li
+                      key={r.get('id')}
+                      onClick={() => history.push(`/rooms/${r.get('id')}`)}
+                    >
+                      <div className="room--name">{r.get('name')}</div>
+                      <div className="room--nowplaying">{nowPlaying}</div>
+                      <div className="room--meta">
+                        👥 {r.get('peerCount')}
+                      </div>
+                    </li>;
+                  })}
+                </ul>
+                <div className="selector--actions">
+                  <button
+                    type="button"
+                    onClick={() => setScreen(SCREEN_CREATE)}
                   >
-                    <div className="room--name">{r.get('name')}</div>
-                    <div className="room--nowplaying">{nowPlaying}</div>
-                    <div className="room--meta">
-                      👥 {r.get('peerCount')}
-                    </div>
-                  </li>;
-                })}
-              </ul>
+                    create room
+                  </button>
+                </div>
+              </Fragment>
             )}
-            {(rooms.count() === 0) && (
+
+            {(storedRooms.count() > 0) && (
+              <Fragment>
+                <h2>inactive rooms</h2>
+                <p>
+                  the following are rooms you own but are currently inactive
+                </p>
+                <ul className="selector--rooms">
+                  {storedRooms.map((r) => {
+                    return <li
+                      key={r.get('_id')}
+                      onClick={() => history.push(r.get('_id'))}
+                    >
+                      <div className="room--name">{r.get('name')}</div>
+                      <div className="room--nowplaying">Inactive</div>
+                    </li>;
+                  })}
+                </ul>
+              </Fragment>
+            )}
+
+            {(rooms.count() + storedRooms.count() === 0) && (
               <div className="selector--rooms-empty">
                 <div className="icon">🙀</div>
                 <div className="text">
@@ -190,7 +222,7 @@ const RoomSelectorPage = ({history}) => {
               <input
                 type="text"
                 placeholder="da club"
-                onInput={e => setRoom({...room, name: e.target.value})}
+                onChange={e => setRoom({...room, name: e.target.value})}
                 value={room.name}
               />
               <button type="button" onClick={createRoom}>create room</button>
