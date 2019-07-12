@@ -211,6 +211,7 @@ function* join({inviteCode}) {
   }
 
   const buoy = {
+    id: token.i,
     url: token.u,
     name: token.n,
     token: resp.token,

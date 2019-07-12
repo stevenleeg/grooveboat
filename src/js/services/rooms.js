@@ -492,8 +492,7 @@ function* restoreRoom({id}) {
     return;
   }
 
-  const room = Immutable.fromJS(resp.room);
-  yield put(Actions.joinRoomSuccess({room}));
+  yield put(Actions.joinRoomSuccess({room: Immutable.fromJS(resp)}));
 }
 
 function* joinRoom({id}) {

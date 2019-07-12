@@ -137,7 +137,7 @@ const RoomSelectorPage = ({history}) => {
         {(!isConnecting && !connectedBuoy) && (
           <div className="selector--nobuoy">
             <div className="icon">🤔</div>
-            <div className="text">can't establish connection with buoy. try contacting the admins?</div>
+            <div className="text">can't establish connection with buoy. give it a sec and then refresh.</div>
           </div>
         )}
         {(connectedBuoy && screen === SCREEN_SELECT) && (

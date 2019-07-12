@@ -50,18 +50,17 @@ function* joinBuoy({inviteCode, callback}) {
 
 function* init() {
   yield put(BuoyActions.fetchBuoys());
-
   const {buoys} = yield take(BuoyActionTypes.FETCH_BUOYS_SUCCESS);
-  if (process.env.DEFAULT_INVITE) {
-    // Do we have a default buoy to go with?
+
+  if (buoys.count() > 0) {
+    yield put(BuoyActions.connect({buoy: buoys.get(0)}));
+  } else if (buoys.count() === 0 && process.env.DEFAULT_INVITE) {
     yield call(joinBuoy, {inviteCode: process.env.DEFAULT_INVITE});
     return;
-  }
-  if (buoys.count() === 0 && !process.env.DEFAULT_INVITE) {
+  } else if (buoys.count() === 0) {
     return;
   }
 
-  yield put(BuoyActions.connect({buoy: buoys.get(0)}));
   const {type} = yield take([
     BuoyActionTypes.CONNECT_SUCCESS,
     BuoyActionTypes.CONNECT_FAILURE,
