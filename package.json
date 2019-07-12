@@ -45,7 +45,6 @@
     "fs-extra": "^8.0.1",
     "howler": "2.0.15",
     "immutable": "^4.0.0-rc.12",
-    "ipfsd-ctl": "^0.42.4",
     "jsmediatags": "^3.8.1",
     "jsonwebtoken": "^8.5.1",
     "pouchdb-browser": "^7.0.0",
