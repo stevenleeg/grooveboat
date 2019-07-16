@@ -182,7 +182,8 @@ const RoomSelectorPage = ({history}) => {
               <Fragment>
                 <h2>inactive rooms</h2>
                 <p>
-                  the following are rooms you own but are currently inactive
+                  these are rooms you've created but have since been closed
+                  because of inactivity. click on a room to reactivate it.
                 </p>
                 <ul className="selector--rooms">
                   {storedRooms.map((r) => {
