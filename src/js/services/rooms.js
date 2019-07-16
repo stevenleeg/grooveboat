@@ -466,11 +466,11 @@ function* restoreRoom({id}) {
   } catch (e) {
     if (e.status !== 404) {
       yield put(Actions.joinRoomFailure({message: e.message}));
-      return;
+      return false;
     }
 
     yield put(Actions.joinRoomFailure({message: 'stored room not found'}));
-    return;
+    return false;
   }
 
   const resp = yield call(send, {
@@ -484,27 +484,36 @@ function* restoreRoom({id}) {
     yield put(Actions.joinRoomFailure({
       message: 'you are not authenticated as the admin of this room',
     }));
-    return;
+    return false;
   }
 
   if (resp.error) {
     yield put(Actions.joinRoomFailure({message: resp.message}));
-    return;
+    return false;
   }
 
   yield put(Actions.joinRoomSuccess({room: Immutable.fromJS(resp)}));
+  return true;
 }
 
 function* joinRoom({id}) {
-  const resp = yield call(send, {
+  let resp = yield call(send, {
     name: 'joinRoom',
     params: {id},
   });
 
   if (resp.error && resp.message === 'room not found') {
     // Can we restore this room
-    yield call(restoreRoom, {id});
-    return;
+    const restoreSuccess = yield call(restoreRoom, {id});
+    if (!restoreSuccess) {
+      return;
+    }
+
+    // Make another attempt to join the room
+    resp = yield call(send, {
+      name: 'joinRoom',
+      params: {id},
+    });
   }
 
   if (resp.error) {
