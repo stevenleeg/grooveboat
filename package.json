@@ -46,7 +46,7 @@
     "howler": "2.0.15",
     "immutable": "^4.0.0-rc.12",
     "jsmediatags": "^3.8.1",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "pouchdb-browser": "^7.0.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
